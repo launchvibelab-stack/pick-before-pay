@@ -56,11 +56,17 @@ button, input, textarea, select { font: inherit; }
 }
 .brand {
   display: inline-flex;
-  align-items: baseline;
-  gap: 0;
+  align-items: center;
+  gap: 8px;
   font-size: 17px;
   font-weight: 650;
   letter-spacing: -0.03em;
+}
+.brand-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 .brand span { color: var(--text); }
 .brand b { color: var(--text); font-weight: 650; }
@@ -182,12 +188,11 @@ button, input, textarea, select { font: inherit; }
   color: var(--text);
   animation: riseIn 0.9s 0.05s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-.hero-brand-mark {
-  width: 10px;
-  height: 10px;
-  border-radius: 99px;
-  background: var(--text);
-  box-shadow: 0 0 0 6px rgba(10, 10, 10, 0.06);
+.hero-brand-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 .hero h1 {
   font-size: clamp(44px, 7.2vw, 80px);

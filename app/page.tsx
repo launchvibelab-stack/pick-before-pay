@@ -3,6 +3,7 @@ import { PostCard } from "@/components/PostCard";
 import { getNiches } from "@/lib/niches";
 import { getPublishedPosts } from "@/lib/posts";
 import type { Niche, Post } from "@/lib/types";
+import Image from "next/image";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -26,7 +27,7 @@ export default async function Home() {
           <div className="container">
             <div className="hero-inner">
               <div className="hero-brand">
-                <span className="hero-brand-mark" aria-hidden />
+                <Image src="/logo.png" alt="" width={28} height={28} className="hero-brand-logo" priority />
                 PickBeforePay
               </div>
               <h1>

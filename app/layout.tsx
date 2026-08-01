@@ -23,7 +23,14 @@ export const metadata: Metadata = {
     default: "PickBeforePay — Honest product reviews",
     template: "%s | PickBeforePay"
   },
-  description: "In-depth niche reviews to help you choose the right tools and products before you buy."
+  description: "In-depth niche reviews to help you choose the right tools and products before you buy.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/logo.png", type: "image/png" }
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }]
+  }
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
