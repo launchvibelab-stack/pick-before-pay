@@ -1,0 +1,48 @@
+create extension if not exists pgcrypto;
+
+create table if not exists public.niches (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  slug text not null unique,
+  description text not null default '',
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.posts (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  slug text not null unique,
+  excerpt text not null default '',
+  content text not null default '',
+  category text not null default '',
+  niche_id uuid references public.niches(id) on delete set null,
+  focus_keyword text not null default '',
+  affiliate_url text,
+  meta_title text not null default '',
+  meta_description text not null default '',
+  cover_url text,
+  published boolean not null default false,
+  indexed_at timestamptz,
+  index_status text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.niches enable row level security;
+alter table public.posts enable row level security;
+
+drop policy if exists "Public can read niches" on public.niches;
+create policy "Public can read niches"
+on public.niches for select
+to anon
+using (true);
+
+drop policy if exists "Public can read published posts" on public.posts;
+create policy "Public can read published posts"
+on public.posts for select
+to anon
+using (published = true);
+
+insert into storage.buckets (id, name, public)
+values ('post-images', 'post-images', true)
+on conflict (id) do update set public = true;
