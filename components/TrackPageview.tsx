@@ -16,12 +16,28 @@ export function TrackPageview({ path, postId }: Props) {
     } catch {
       /* private mode */
     }
-    void fetch("/api/analytics/pageview", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ path, postId }),
-      keepalive: true
-    });
+
+    const send = () => {
+      void fetch("/api/analytics/pageview", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ path, postId }),
+        keepalive: true
+      });
+    };
+
+    const w = window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+
+    if (typeof w.requestIdleCallback === "function") {
+      const id = w.requestIdleCallback(send, { timeout: 2500 });
+      return () => w.cancelIdleCallback?.(id);
+    }
+
+    const t = setTimeout(send, 1200);
+    return () => clearTimeout(t);
   }, [path, postId]);
 
   return null;

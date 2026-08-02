@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { BrandLogo } from "@/components/BrandLogo";
 import Link from "next/link";
 import { isAdmin } from "@/lib/auth";
 
@@ -7,11 +7,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="admin-shell">
       <header className="admin-header">
-        <Link href="/" className="brand">
-          <Image src="/logo.png" alt="" width={32} height={32} className="brand-logo" priority />
-          <span>Pick</span>
-          <b>BeforePay</b>
-        </Link>
+        <BrandLogo />
         {authed && (
           <nav>
             <Link href="/admin">Overview</Link>

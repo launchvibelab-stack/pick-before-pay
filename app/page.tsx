@@ -8,14 +8,14 @@ import type { Niche, Post } from "@/lib/types";
 import Image from "next/image";
 import Link from "next/link";
 
-export const revalidate = 60;
+export const revalidate = 300;
 
 export default async function Home() {
   let posts: Post[] = [];
   let niches: Niche[] = [];
   let error = "";
   try {
-    [posts, niches] = await Promise.all([getPublishedPosts(), getNiches()]);
+    [posts, niches] = await Promise.all([getPublishedPosts(undefined, 12), getNiches()]);
   } catch {
     error = "Supabase is not connected. Add environment variables and run schema.sql.";
   }
@@ -29,7 +29,15 @@ export default async function Home() {
           <div className="container">
             <div className="hero-inner">
               <div className="hero-brand">
-                <Image src="/logo.png" alt="" width={28} height={28} className="hero-brand-logo" priority />
+                <Image
+                  src="/logo-mark.png"
+                  alt=""
+                  width={28}
+                  height={28}
+                  className="hero-brand-logo"
+                  priority
+                  sizes="28px"
+                />
                 PickBeforePay
               </div>
               <h1>

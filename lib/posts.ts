@@ -1,9 +1,17 @@
 import { getSupabaseAdmin } from "@/lib/supabase";
 import type { Post } from "@/lib/types";
 
-export async function getPublishedPosts(nicheId?: string): Promise<Post[]> {
+const LIST_FIELDS =
+  "id, title, slug, excerpt, category, cover_url, created_at, focus_keyword, niche_id, published";
+
+export async function getPublishedPosts(nicheId?: string, limit = 24): Promise<Post[]> {
   const db = getSupabaseAdmin();
-  let query = db.from("posts").select("*").eq("published", true).order("created_at", { ascending: false });
+  let query = db
+    .from("posts")
+    .select(LIST_FIELDS)
+    .eq("published", true)
+    .order("created_at", { ascending: false })
+    .limit(limit);
   if (nicheId) query = query.eq("niche_id", nicheId);
   const { data, error } = await query;
   if (error) throw error;
