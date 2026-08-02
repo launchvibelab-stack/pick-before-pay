@@ -703,10 +703,6 @@ footer {
   border-radius: 4px;
   background: rgba(10, 10, 10, 0.05);
 }
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace !important;
-  line-height: 1.6;
-  font-size: 13px !important;
-}
 .check { flex-direction: row !important; align-items: center; }
 .check input { width: auto; }
 
