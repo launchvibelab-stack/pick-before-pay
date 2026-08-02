@@ -1,9 +1,19 @@
+import { SubscribeForm } from "@/components/SubscribeForm";
+
 export function SiteFooter() {
   const year = new Date().getFullYear();
 
   return (
     <footer className="site-footer">
       <div className="container">
+        <div className="footer-subscribe">
+          <div>
+            <h2 className="footer-sub-title">Get new reviews in your inbox</h2>
+            <p>Practical pick-before-you-pay notes. No spam — unsubscribe anytime.</p>
+          </div>
+          <SubscribeForm compact />
+        </div>
+
         <p className="footer-copy">
           © {year} PickBeforePay · pickbeforepay.com
         </p>

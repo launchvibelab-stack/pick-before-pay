@@ -17,6 +17,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <Link href="/admin">Overview</Link>
             <Link href="/admin/posts">Posts</Link>
             <Link href="/admin/niches">Niches</Link>
+            <Link href="/admin/about">About</Link>
             <Link href="/admin/new">New post</Link>
             <form action="/api/auth/logout" method="post">
               <button>Log out</button>

@@ -5,14 +5,17 @@ import "./globals.css";
 const outfit = Outfit({
   subsets: ["latin"],
   variable: "--font-sans",
-  display: "swap"
+  display: "swap",
+  preload: true
 });
 
 const newsreader = Newsreader({
   subsets: ["latin"],
   variable: "--font-serif",
-  style: ["normal", "italic"],
-  display: "swap"
+  style: ["italic"],
+  weight: ["500"],
+  display: "swap",
+  preload: false
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://pickbeforepay.com";
@@ -27,7 +30,7 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
-      { url: "/logo.png", type: "image/png" }
+      { url: "/icon.png", type: "image/png" }
     ],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }]
   }

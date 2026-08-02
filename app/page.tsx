@@ -8,7 +8,6 @@ import type { Niche, Post } from "@/lib/types";
 import Image from "next/image";
 import Link from "next/link";
 
-export const dynamic = "force-dynamic";
 export const revalidate = 60;
 
 export default async function Home() {
@@ -101,6 +100,11 @@ export default async function Home() {
             <p>
               PickBeforePay focuses on real usage, who a product is for, and whether it is worth the
               money — before you commit.
+            </p>
+            <p style={{ marginTop: 18 }}>
+              <Link href="/about" className="primary-btn">
+                Meet the reviewer →
+              </Link>
             </p>
           </div>
         </section>

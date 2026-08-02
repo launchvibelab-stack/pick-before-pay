@@ -78,6 +78,7 @@ button, input, textarea, select { font: inherit; }
   color: var(--muted);
   font-size: 14px;
   font-weight: 500;
+  margin-left: auto;
 }
 .nav-wrap nav a:hover,
 .admin-header nav a:hover { color: var(--text); }
@@ -319,6 +320,7 @@ button, input, textarea, select { font: inherit; }
   border-color: var(--line-strong);
 }
 .cover {
+  position: relative;
   height: 180px;
   background: linear-gradient(145deg, #ececef, #f7f7f8) center / cover;
   display: flex;
@@ -328,6 +330,10 @@ button, input, textarea, select { font: inherit; }
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.14em;
+  overflow: hidden;
+}
+.cover-img {
+  object-fit: cover;
 }
 .post-body { padding: 20px 20px 22px; }
 .category-pill {
@@ -410,6 +416,199 @@ footer,
 .footer-disclaimer strong {
   color: #5c5c66;
   font-weight: 650;
+}
+.footer-subscribe {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 24px;
+  align-items: end;
+  padding: 22px 0 28px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid var(--line);
+}
+.footer-sub-title {
+  margin: 0 0 6px;
+  font-size: 20px;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  font-weight: 650;
+}
+.footer-subscribe > div > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.subscribe-form {
+  display: grid;
+  gap: 10px;
+}
+.subscribe-row {
+  display: flex;
+  gap: 10px;
+}
+.subscribe-form input {
+  flex: 1;
+  width: 100%;
+  background: #fff;
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 12px 14px;
+  outline: none;
+}
+.subscribe-form input:focus {
+  border-color: #9bb6f5;
+  box-shadow: 0 0 0 4px rgba(47, 111, 237, 0.12);
+}
+.subscribe-form .primary-btn {
+  flex-shrink: 0;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+.subscribe-msg {
+  margin: 0;
+  font-size: 13px;
+}
+.subscribe-msg.is-ok { color: #1f7a4d; }
+.subscribe-msg.is-error { color: #b42318; }
+
+.about-page {
+  padding: 64px 0 80px;
+  max-width: 760px;
+}
+.about-hero {
+  display: flex;
+  gap: 22px;
+  align-items: center;
+  margin-bottom: 28px;
+}
+.about-avatar {
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.about-avatar-fallback {
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  font-size: 42px;
+  font-weight: 650;
+  color: var(--text);
+}
+.about-hero h1 {
+  margin: 8px 0 8px;
+  font-size: clamp(32px, 5vw, 44px);
+  letter-spacing: -0.04em;
+  font-weight: 650;
+}
+.about-headline {
+  margin: 0;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1.5;
+  font-family: var(--font-serif);
+  font-style: italic;
+}
+.about-bio {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 36px;
+  font-size: 17px;
+  line-height: 1.75;
+  color: #2a2a32;
+}
+.about-bio p { margin: 0; }
+.about-section {
+  margin-bottom: 36px;
+}
+.about-section h2 {
+  margin: 0 0 14px;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+}
+.about-socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.about-social {
+  display: inline-flex;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+}
+.about-social:hover { border-color: var(--text); }
+.about-products {
+  display: grid;
+  gap: 12px;
+}
+.about-product {
+  display: block;
+  padding: 18px 18px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--bg-elevated);
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.about-product:hover {
+  border-color: var(--line-strong);
+  transform: translateY(-2px);
+}
+.about-product h3 {
+  margin: 0 0 6px;
+  font-size: 17px;
+  letter-spacing: -0.02em;
+}
+.about-product p {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.about-product span {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--focus);
+}
+.about-back {
+  margin-top: 8px;
+}
+.about-back a {
+  color: var(--focus);
+  font-weight: 600;
+}
+.editor-subhead {
+  margin: 18px 0 8px;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+}
+.product-editor-row {
+  border: 1px dashed var(--line-strong);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+  background: #fafafa;
+}
+
+@media (max-width: 720px) {
+  .footer-subscribe {
+    grid-template-columns: 1fr;
+  }
+  .subscribe-row {
+    flex-direction: column;
+  }
+  .about-hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 /* —— Article —— */
