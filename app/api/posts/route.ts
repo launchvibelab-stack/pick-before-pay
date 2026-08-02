@@ -1,6 +1,6 @@
 import { isAdmin } from "@/lib/auth";
 import { getNicheById } from "@/lib/niches";
-import { applySeoPipeline } from "@/lib/seo";
+import { applySeoPipeline, syncNicheInternalLinks } from "@/lib/seo";
 import { maybeIndexPost } from "@/lib/sinbyte";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { NextResponse } from "next/server";
@@ -57,6 +57,23 @@ export async function POST(req: Request) {
   const { data, error } = await getSupabaseAdmin().from("posts").insert(payload).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
+  let nicheSync = 0;
+  if (published && niche_id) {
+    try {
+      nicheSync = await syncNicheInternalLinks({
+        nicheId: niche_id,
+        seedPost: {
+          id: data.id,
+          title: data.title,
+          slug: data.slug,
+          focus_keyword: data.focus_keyword
+        }
+      });
+    } catch {
+      nicheSync = 0;
+    }
+  }
+
   const index = await maybeIndexPost({
     id: data.id,
     slug: data.slug,
@@ -66,7 +83,12 @@ export async function POST(req: Request) {
   });
 
   return NextResponse.json(
-    { ...data, index_status: index?.index_status ?? data.index_status, warning: index?.warning },
+    {
+      ...data,
+      index_status: index?.index_status ?? data.index_status,
+      warning: index?.warning,
+      niche_links_updated: nicheSync
+    },
     { status: 201 }
   );
 }

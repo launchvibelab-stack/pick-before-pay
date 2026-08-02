@@ -46,3 +46,19 @@ using (published = true);
 insert into storage.buckets (id, name, public)
 values ('post-images', 'post-images', true)
 on conflict (id) do update set public = true;
+
+-- Analytics (also in migration_analytics.sql)
+create table if not exists public.analytics_daily (
+  day date not null,
+  path text not null,
+  post_id uuid references public.posts(id) on delete cascade,
+  pageviews integer not null default 0,
+  affiliate_clicks integer not null default 0,
+  primary key (day, path)
+);
+
+create index if not exists analytics_daily_day_idx on public.analytics_daily (day);
+create index if not exists analytics_daily_post_idx on public.analytics_daily (post_id);
+
+alter table public.analytics_daily enable row level security;
+

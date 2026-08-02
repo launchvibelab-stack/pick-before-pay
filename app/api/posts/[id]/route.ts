@@ -1,6 +1,6 @@
 import { isAdmin } from "@/lib/auth";
 import { getNicheById } from "@/lib/niches";
-import { applySeoPipeline } from "@/lib/seo";
+import { applySeoPipeline, syncNicheInternalLinks } from "@/lib/seo";
 import { maybeIndexPost } from "@/lib/sinbyte";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import type { IndexStatus } from "@/lib/types";
@@ -72,6 +72,32 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
+  const nichesToSync = new Set<string>();
+  if (published && niche_id) nichesToSync.add(niche_id);
+  if (existing.niche_id && existing.niche_id !== niche_id) nichesToSync.add(existing.niche_id);
+  // Unpublish / niche move: refresh old niche too
+  if (!published && existing.published && existing.niche_id) nichesToSync.add(existing.niche_id);
+
+  let nicheSync = 0;
+  for (const nid of nichesToSync) {
+    try {
+      nicheSync += await syncNicheInternalLinks({
+        nicheId: nid,
+        seedPost:
+          published && nid === niche_id
+            ? {
+                id: data.id,
+                title: data.title,
+                slug: data.slug,
+                focus_keyword: data.focus_keyword
+              }
+            : null
+      });
+    } catch {
+      /* keep save successful even if sync fails */
+    }
+  }
+
   const index = await maybeIndexPost({
     id: data.id,
     slug: data.slug,
@@ -84,14 +110,31 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   return NextResponse.json({
     ...data,
     index_status: index?.index_status ?? data.index_status,
-    warning: index?.warning
+    warning: index?.warning,
+    niche_links_updated: nicheSync
   });
 }
 
 export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await isAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
+
+  const { data: existing } = await getSupabaseAdmin()
+    .from("posts")
+    .select("niche_id, published")
+    .eq("id", id)
+    .maybeSingle();
+
   const { error } = await getSupabaseAdmin().from("posts").delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+  if (existing?.niche_id && existing.published) {
+    try {
+      await syncNicheInternalLinks({ nicheId: existing.niche_id });
+    } catch {
+      /* ignore */
+    }
+  }
+
   return NextResponse.json({ ok: true });
 }

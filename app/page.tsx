@@ -1,5 +1,6 @@
 import { Header } from "@/components/Header";
 import { PostCard } from "@/components/PostCard";
+import { TrackPageview } from "@/components/TrackPageview";
 import { getNiches } from "@/lib/niches";
 import { getPublishedPosts } from "@/lib/posts";
 import type { Niche, Post } from "@/lib/types";
@@ -21,6 +22,7 @@ export default async function Home() {
 
   return (
     <>
+      <TrackPageview path="/" />
       <Header />
       <main>
         <section className="hero">

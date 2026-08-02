@@ -1,9 +1,11 @@
 import { Header } from "@/components/Header";
+import { MarkdownContent } from "@/components/MarkdownContent";
+import { TrackPageview } from "@/components/TrackPageview";
+import { extractFaqs } from "@/lib/content";
 import { getPostBySlug } from "@/lib/posts";
 import { siteUrl } from "@/lib/seo";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import ReactMarkdown from "react-markdown";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 60;
@@ -47,7 +49,8 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   if (!post) notFound();
 
   const url = `${siteUrl()}/posts/${post.slug}`;
-  const jsonLd = {
+  const faqs = extractFaqs(post.content);
+  const articleLd = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: post.title,
@@ -59,12 +62,28 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
     keywords: post.focus_keyword || undefined,
     articleSection: post.category || undefined
   };
+  const faqLd =
+    faqs.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faqs.map((f) => ({
+            "@type": "Question",
+            name: f.question,
+            acceptedAnswer: { "@type": "Answer", text: f.answer }
+          }))
+        }
+      : null;
 
   return (
     <>
+      <TrackPageview path={`/posts/${post.slug}`} postId={post.id} />
       <Header />
       <main className="container article-wrap">
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }} />
+        {faqLd && (
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
+        )}
         <div className="article-meta">
           <span className="category-pill">{post.category}</span>
           <span>{new Date(post.created_at).toLocaleDateString("en-US")}</span>
@@ -73,9 +92,21 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         <h1>{post.title}</h1>
         <p className="article-excerpt">{post.excerpt}</p>
         {post.cover_url && <img className="article-cover" src={post.cover_url} alt={post.title} />}
-        <article className="prose">
-          <ReactMarkdown>{post.content}</ReactMarkdown>
+        <article>
+          <MarkdownContent content={post.content} affiliateUrl={post.affiliate_url} postId={post.id} />
         </article>
+        {post.affiliate_url && (
+          <div className="sticky-cta">
+            <a
+              href={`/api/go/${post.id}`}
+              className="cta-btn cta-btn-lg"
+              rel="nofollow sponsored noopener"
+              target="_blank"
+            >
+              Get started — exclusive bonuses via our link
+            </a>
+          </div>
+        )}
       </main>
       <footer>
         <div className="container">© {new Date().getFullYear()} PickBeforePay · pickbeforepay.com</div>

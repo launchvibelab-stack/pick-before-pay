@@ -141,8 +141,15 @@ export function PostEditor({ niches, post }: Props) {
           required
           rows={18}
           defaultValue={post?.content || ""}
-          placeholder={"## Quick verdict\n\nPaste your review content here..."}
+          placeholder={
+            "Paste full review Markdown here.\nApp auto-handles: H1→H2 SEO, tables, YOUR_AFFILIATE_LINK → real URL, CTA buttons, FAQ schema."
+          }
         />
+        <small className="field-hint">
+          Paste the full review as-is. Keep <code>YOUR_AFFILIATE_LINK</code> in links — it is replaced by the Affiliate URL
+          below. On publish: tables, H1→H2, CTA buttons, FAQ schema, plus internal links to other posts in the same niche
+          (inline + Related reviews, bi-directional sync).
+        </small>
       </label>
 
       <label>
@@ -151,8 +158,11 @@ export function PostEditor({ niches, post }: Props) {
           name="affiliate_url"
           type="url"
           defaultValue={post?.affiliate_url || ""}
-          placeholder="https://..."
+          placeholder="https://warriorplus.com/..."
         />
+        <small className="field-hint">
+          Replaces every <code>YOUR_AFFILIATE_LINK</code> and turns those links into conversion buttons.
+        </small>
       </label>
 
       <label className="check">

@@ -1,8 +1,13 @@
+import { normalizeReviewContent } from "@/lib/content";
+import {
+  RELATED_MARKER,
+  applyInternalLinks,
+  type LinkPeer
+} from "@/lib/internal-links";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { slugify } from "@/lib/slugify";
 import type { Post } from "@/lib/types";
 
-const RELATED_MARKER = "## Related reviews";
 const CTA_MARKER = "## Get started";
 
 function stripMarkdown(text: string): string {
@@ -67,10 +72,24 @@ export type SeoResult = {
   meta_description: string;
 };
 
+async function loadNichePeers(nicheId: string, excludePostId?: string): Promise<LinkPeer[]> {
+  const db = getSupabaseAdmin();
+  let query = db
+    .from("posts")
+    .select("id, title, slug, focus_keyword")
+    .eq("niche_id", nicheId)
+    .eq("published", true)
+    .order("created_at", { ascending: false })
+    .limit(12);
+  if (excludePostId) query = query.neq("id", excludePostId);
+  const { data } = await query;
+  return (data || []) as LinkPeer[];
+}
+
 export async function applySeoPipeline(input: SeoInput): Promise<SeoResult> {
   const keyword = input.focus_keyword.trim();
   const title = input.title.trim();
-  let content = input.content.trim();
+  let content = normalizeReviewContent(input.content, input.affiliate_url);
 
   const slugBase = slugify(input.slug?.trim() || keyword || title);
   const slug = await ensureUniqueSlug(slugBase, input.excludePostId);
@@ -83,40 +102,22 @@ export async function applySeoPipeline(input: SeoInput): Promise<SeoResult> {
   const meta_title = ensureKeyword(title, keyword, 60);
   const meta_description = ensureKeyword(excerpt || stripMarkdown(content), keyword, 155);
 
-  // Strip auto sections so re-saves stay clean, then re-append.
   content = removeSection(content, RELATED_MARKER);
-  content = removeSection(content, CTA_MARKER);
-
   const affiliate = (input.affiliate_url || "").trim();
-  if (affiliate && !content.includes(affiliate)) {
-    content = `${content}\n\n${CTA_MARKER}\n\n[Check current offer](${affiliate})`;
+  if (!affiliate) {
+    content = removeSection(content, CTA_MARKER);
   }
 
   if (input.niche_id) {
-    const db = getSupabaseAdmin();
-    let query = db
-      .from("posts")
-      .select("id, title, slug")
-      .eq("niche_id", input.niche_id)
-      .eq("published", true)
-      .order("created_at", { ascending: false })
-      .limit(5);
-    if (input.excludePostId) query = query.neq("id", input.excludePostId);
-    const { data: related } = await query;
-    const links = ((related || []) as Pick<Post, "id" | "title" | "slug">[]).filter(
-      (p) => !content.includes(`/posts/${p.slug}`)
-    );
-    if (links.length) {
-      const list = links
-        .slice(0, 5)
-        .map((p) => `- [${p.title}](/posts/${p.slug})`)
-        .join("\n");
-      content = `${content}\n\n${RELATED_MARKER}\n\n${list}`;
-    }
+    const peers = await loadNichePeers(input.niche_id, input.excludePostId);
+    content = applyInternalLinks(content, peers);
   }
 
   return { slug, excerpt, content, meta_title, meta_description };
 }
+
+export { RELATED_MARKER };
+export { syncNicheInternalLinks } from "@/lib/internal-links";
 
 export function siteUrl(): string {
   return (process.env.NEXT_PUBLIC_SITE_URL || "https://pickbeforepay.com").replace(/\/$/, "");
