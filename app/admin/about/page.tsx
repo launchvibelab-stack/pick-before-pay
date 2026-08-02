@@ -21,10 +21,6 @@ export default async function AdminAboutPage() {
           View public page →
         </Link>
       </div>
-      <p className="card-lead" style={{ marginBottom: 18 }}>
-        Edit your profile, social links, and product list shown on /about. Run{" "}
-        <code>supabase/migration_about.sql</code> once if saving fails.
-      </p>
       <AboutEditor initial={profile} />
     </main>
   );

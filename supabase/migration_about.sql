@@ -1,4 +1,4 @@
--- About page profile (singleton row id = 1)
+-- Optional SQL mirror for about profile (app primarily stores JSON in Storage bucket site-config/about.json).
 
 create table if not exists public.about_profile (
   id integer primary key default 1 check (id = 1),
@@ -9,9 +9,14 @@ create table if not exists public.about_profile (
   facebook_url text not null default '',
   pinterest_url text not null default '',
   telegram_url text not null default '',
+  linkedin_url text not null default '',
+  youtube_url text not null default '',
   products jsonb not null default '[]'::jsonb,
   updated_at timestamptz not null default now()
 );
+
+alter table public.about_profile add column if not exists linkedin_url text not null default '';
+alter table public.about_profile add column if not exists youtube_url text not null default '';
 
 insert into public.about_profile (id, name, headline, bio)
 values (

@@ -6,7 +6,11 @@ import type { AboutProduct, AboutProfile } from "@/lib/about";
 
 export function AboutEditor({ initial }: { initial: AboutProfile }) {
   const router = useRouter();
-  const [form, setForm] = useState<AboutProfile>(initial);
+  const [form, setForm] = useState<AboutProfile>({
+    ...initial,
+    linkedin_url: initial.linkedin_url || "",
+    youtube_url: initial.youtube_url || ""
+  });
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
 
@@ -37,19 +41,30 @@ export function AboutEditor({ initial }: { initial: AboutProfile }) {
     e.preventDefault();
     setLoading(true);
     setMsg("");
-    const r = await fetch("/api/about", {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(form)
-    });
-    const j = await r.json().catch(() => ({}));
-    setLoading(false);
-    if (!r.ok) {
-      setMsg(j.error || "Save failed");
-      return;
+    try {
+      const r = await fetch("/api/about", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(form)
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setMsg(j.error || "Save failed");
+        setLoading(false);
+        return;
+      }
+      setForm({
+        ...j,
+        linkedin_url: j.linkedin_url || "",
+        youtube_url: j.youtube_url || ""
+      });
+      setMsg("Saved.");
+      router.refresh();
+    } catch {
+      setMsg("Network error. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    setMsg("Saved.");
-    router.refresh();
   }
 
   return (
@@ -88,6 +103,14 @@ export function AboutEditor({ initial }: { initial: AboutProfile }) {
         Telegram URL
         <input value={form.telegram_url} onChange={(e) => update("telegram_url", e.target.value)} />
       </label>
+      <label>
+        LinkedIn URL
+        <input value={form.linkedin_url || ""} onChange={(e) => update("linkedin_url", e.target.value)} />
+      </label>
+      <label>
+        YouTube URL
+        <input value={form.youtube_url || ""} onChange={(e) => update("youtube_url", e.target.value)} />
+      </label>
 
       <h3 className="editor-subhead">My products</h3>
       {form.products.map((p, i) => (
@@ -116,10 +139,10 @@ export function AboutEditor({ initial }: { initial: AboutProfile }) {
         + Add product
       </button>
 
-      <button className="primary-btn" disabled={loading} style={{ marginTop: 20 }}>
+      <button type="submit" className="primary-btn" disabled={loading} style={{ marginTop: 20 }}>
         {loading ? "Saving..." : "Save about page"}
       </button>
-      {msg && <p className="field-hint">{msg}</p>}
+      {msg && <p className={`field-hint ${msg === "Saved." ? "" : "subscribe-msg is-error"}`}>{msg}</p>}
     </form>
   );
 }

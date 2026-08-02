@@ -23,7 +23,9 @@ export default async function AboutPage() {
   const socials = [
     { label: "Facebook", href: profile.facebook_url },
     { label: "Pinterest", href: profile.pinterest_url },
-    { label: "Telegram", href: profile.telegram_url }
+    { label: "Telegram", href: profile.telegram_url },
+    { label: "LinkedIn", href: profile.linkedin_url },
+    { label: "YouTube", href: profile.youtube_url }
   ].filter((s) => s.href);
 
   return (
