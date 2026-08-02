@@ -1,5 +1,6 @@
 import { Header } from "@/components/Header";
 import { PostCard } from "@/components/PostCard";
+import { SiteFooter } from "@/components/SiteFooter";
 import { getNicheBySlug } from "@/lib/niches";
 import { getPublishedPosts } from "@/lib/posts";
 import { siteUrl } from "@/lib/seo";
@@ -56,6 +57,7 @@ export default async function NichePage({ params }: { params: Promise<{ slug: st
           <div className="empty">No published reviews in this niche yet.</div>
         )}
       </main>
+      <SiteFooter />
     </>
   );
 }

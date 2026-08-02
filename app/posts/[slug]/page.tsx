@@ -1,5 +1,6 @@
 import { Header } from "@/components/Header";
 import { MarkdownContent } from "@/components/MarkdownContent";
+import { SiteFooter } from "@/components/SiteFooter";
 import { TrackPageview } from "@/components/TrackPageview";
 import { extractFaqs } from "@/lib/content";
 import { getPostBySlug } from "@/lib/posts";
@@ -108,9 +109,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
           </div>
         )}
       </main>
-      <footer>
-        <div className="container">© {new Date().getFullYear()} PickBeforePay · pickbeforepay.com</div>
-      </footer>
+      <SiteFooter />
     </>
   );
 }

@@ -1,5 +1,6 @@
 import { Header } from "@/components/Header";
 import { PostCard } from "@/components/PostCard";
+import { SiteFooter } from "@/components/SiteFooter";
 import { TrackPageview } from "@/components/TrackPageview";
 import { getNiches } from "@/lib/niches";
 import { getPublishedPosts } from "@/lib/posts";
@@ -104,9 +105,7 @@ export default async function Home() {
           </div>
         </section>
       </main>
-      <footer>
-        <div className="container">© {new Date().getFullYear()} PickBeforePay · pickbeforepay.com</div>
-      </footer>
+      <SiteFooter />
     </>
   );
 }
