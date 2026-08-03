@@ -434,6 +434,13 @@ footer,
   font-size: 14px;
   line-height: 1.5;
 }
+.subscribe-count {
+  margin-top: 10px !important;
+  color: var(--text) !important;
+  font-size: 13px !important;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
 .subscribe-skeleton {
   height: 48px;
   border-radius: 12px;
@@ -798,7 +805,7 @@ footer,
 }
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 14px;
 }
 .stat-grid > div b.stat-note {

@@ -1,7 +1,9 @@
 import { SubscribeForm } from "@/components/SubscribeForm";
+import { getGetResponseSubscriberCount } from "@/lib/getresponse";
 
-export function SiteFooter() {
+export async function SiteFooter() {
   const year = new Date().getFullYear();
+  const subscribers = await getGetResponseSubscriberCount();
 
   return (
     <footer className="site-footer">
@@ -10,6 +12,12 @@ export function SiteFooter() {
           <div>
             <h2 className="footer-sub-title">Get new reviews in your inbox</h2>
             <p>Practical pick-before-you-pay notes. No spam — unsubscribe anytime.</p>
+            {subscribers != null && subscribers > 0 && (
+              <p className="subscribe-count">
+                {subscribers.toLocaleString("en-US")} {subscribers === 1 ? "person has" : "people have"}{" "}
+                subscribed
+              </p>
+            )}
           </div>
           <SubscribeForm compact />
         </div>

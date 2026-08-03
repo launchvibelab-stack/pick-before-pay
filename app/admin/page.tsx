@@ -1,5 +1,6 @@
 import { isAdmin } from "@/lib/auth";
 import { getAnalyticsSummary } from "@/lib/analytics";
+import { getGetResponseSubscriberCount } from "@/lib/getresponse";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSupabaseAdmin } from "@/lib/supabase";
@@ -9,12 +10,14 @@ export const dynamic = "force-dynamic";
 export default async function AdminPage() {
   if (!(await isAdmin())) redirect("/admin/login");
   const db = getSupabaseAdmin();
-  const [{ count: posts }, { count: published }, { count: niches }, analytics] = await Promise.all([
-    db.from("posts").select("*", { count: "exact", head: true }),
-    db.from("posts").select("*", { count: "exact", head: true }).eq("published", true),
-    db.from("niches").select("*", { count: "exact", head: true }),
-    getAnalyticsSummary().catch(() => null)
-  ]);
+  const [{ count: posts }, { count: published }, { count: niches }, analytics, subscribers] =
+    await Promise.all([
+      db.from("posts").select("*", { count: "exact", head: true }),
+      db.from("posts").select("*", { count: "exact", head: true }).eq("published", true),
+      db.from("niches").select("*", { count: "exact", head: true }),
+      getAnalyticsSummary().catch(() => null),
+      getGetResponseSubscriberCount().catch(() => null)
+    ]);
 
   const thisMonth = analytics?.thisMonth;
   const months = analytics?.months || [];
@@ -44,6 +47,10 @@ export default async function AdminPage() {
         <div>
           <span>Niches</span>
           <b>{niches || 0}</b>
+        </div>
+        <div>
+          <span>Subscribers</span>
+          <b>{subscribers ?? "—"}</b>
         </div>
       </div>
 
