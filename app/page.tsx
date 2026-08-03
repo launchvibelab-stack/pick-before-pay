@@ -15,7 +15,7 @@ export default async function Home() {
   let niches: Niche[] = [];
   let error = "";
   try {
-    [posts, niches] = await Promise.all([getPublishedPosts(undefined, 12), getNiches()]);
+    [posts, niches] = await Promise.all([getPublishedPosts(undefined, 6), getNiches()]);
   } catch {
     error = "Supabase is not connected. Add environment variables and run schema.sql.";
   }
