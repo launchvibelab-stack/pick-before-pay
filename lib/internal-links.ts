@@ -2,8 +2,11 @@ import { getSupabaseAdmin } from "@/lib/supabase";
 import type { Post } from "@/lib/types";
 
 export const RELATED_MARKER = "## Related reviews";
+export const RELATED_LIMIT = 5;
 
-export type LinkPeer = Pick<Post, "id" | "title" | "slug" | "focus_keyword">;
+export type LinkPeer = Pick<Post, "id" | "title" | "slug" | "focus_keyword"> & {
+  created_at?: string;
+};
 
 function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -15,6 +18,15 @@ export function removeRelatedSection(content: string): string {
     "i"
   );
   return content.replace(re, "").trim();
+}
+
+function extractRelatedSection(content: string): string {
+  const re = new RegExp(
+    `${RELATED_MARKER.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}[\\s\\S]*?(?=\\n## |$)`,
+    "i"
+  );
+  const m = content.match(re);
+  return (m?.[0] || "").trim();
 }
 
 function isProtectedLine(line: string): boolean {
@@ -38,18 +50,15 @@ function phraseCandidates(peer: LinkPeer): string[] {
     const short = title.replace(/\s+review\s*$/i, "").trim();
     if (short.length >= 6 && short.toLowerCase() !== title.toLowerCase()) out.push(short);
   }
-  // Longer phrases first → fewer accidental partial matches
   return [...new Set(out)].sort((a, b) => b.length - a.length);
 }
 
-/** First plain-text hit of phrase → markdown link (skip if already linked / inside link). */
 function linkFirstPhrase(line: string, phrase: string, href: string): { line: string; linked: boolean } {
   if (line.includes(href)) return { line, linked: false };
   const re = new RegExp(`(?<![\\w/\`])(${escapeRegExp(phrase)})(?![\\w]|\\]\\()`, "i");
   const m = re.exec(line);
   if (!m || m.index === undefined) return { line, linked: false };
 
-  // Skip if this match sits inside an existing markdown link label/url
   const before = line.slice(0, m.index);
   const openBrackets = (before.match(/\[/g) || []).length;
   const closeBrackets = (before.match(/\]/g) || []).length;
@@ -57,6 +66,15 @@ function linkFirstPhrase(line: string, phrase: string, href: string): { line: st
 
   const linked = `${line.slice(0, m.index)}[${m[1]}](${href})${line.slice(m.index + m[1].length)}`;
   return { line: linked, linked: true };
+}
+
+/** Newest first by created_at (missing dates sort last). */
+export function sortPeersNewestFirst(peers: LinkPeer[]): LinkPeer[] {
+  return [...peers].sort((a, b) => {
+    const ta = a.created_at ? Date.parse(a.created_at) : 0;
+    const tb = b.created_at ? Date.parse(b.created_at) : 0;
+    return tb - ta;
+  });
 }
 
 /**
@@ -76,7 +94,6 @@ export function injectContextualLinks(
   let linkedCount = existingLinks;
   const usedSlugs = new Set<string>();
 
-  // Prefer peers whose phrase is more specific
   const ranked = [...peers].sort(
     (a, b) => (b.focus_keyword?.length || 0) - (a.focus_keyword?.length || 0)
   );
@@ -110,46 +127,57 @@ export function injectContextualLinks(
   return lines.join("\n").trim();
 }
 
-export function buildRelatedSection(peers: LinkPeer[], limit = 5): string {
-  const list = peers
-    .slice(0, limit)
-    .map((p) => `- [${p.title}](/posts/${p.slug})`)
-    .join("\n");
+export function buildRelatedSection(peers: LinkPeer[], limit = RELATED_LIMIT): string {
+  const newest = sortPeersNewestFirst(peers).slice(0, limit);
+  const list = newest.map((p) => `- [${p.title}](/posts/${p.slug})`).join("\n");
   if (!list) return "";
   return `\n\n${RELATED_MARKER}\n\n${list}`;
 }
 
 export function applyInternalLinks(content: string, peers: LinkPeer[]): string {
-  const withInline = injectContextualLinks(content, peers, 3);
+  const newest = sortPeersNewestFirst(peers);
+  const relatedPeers = newest.slice(0, RELATED_LIMIT);
+  const withInline = injectContextualLinks(content, newest, 3);
   const base = removeRelatedSection(withInline);
-  const related = buildRelatedSection(peers.slice(0, 5));
+  const related = buildRelatedSection(relatedPeers, RELATED_LIMIT);
   return `${base}${related}`.trim();
 }
 
-/** Rebuild contextual + related links for every published post in a niche. */
+/** Rebuild related (+ contextual) links for every published post in a niche. */
 export async function syncNicheInternalLinks(opts: {
   nicheId: string;
-  /** Include this freshly saved post in peer lists even if not yet visible in a race. */
   seedPost?: LinkPeer | null;
 }): Promise<number> {
   const db = getSupabaseAdmin();
   const { data, error } = await db
     .from("posts")
-    .select("id, title, slug, focus_keyword, content, published, niche_id")
+    .select("id, title, slug, focus_keyword, content, published, niche_id, created_at")
     .eq("niche_id", opts.nicheId)
     .eq("published", true)
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(error.message);
 
-  let posts = (data || []) as Pick<
-    Post,
-    "id" | "title" | "slug" | "focus_keyword" | "content" | "published" | "niche_id"
-  >[];
+  let posts = (data || []) as (LinkPeer & {
+    content: string;
+    published: boolean;
+    niche_id: string | null;
+  })[];
 
   if (opts.seedPost && !posts.some((p) => p.id === opts.seedPost!.id)) {
-    posts = [opts.seedPost as typeof posts[number], ...posts];
+    posts = [
+      {
+        ...opts.seedPost,
+        created_at: opts.seedPost.created_at || new Date().toISOString(),
+        content: "",
+        published: true,
+        niche_id: opts.nicheId
+      },
+      ...posts
+    ];
   }
+
+  posts = sortPeersNewestFirst(posts) as typeof posts;
 
   if (posts.length < 2) return 0;
 
@@ -157,7 +185,6 @@ export async function syncNicheInternalLinks(opts: {
   const now = new Date().toISOString();
 
   for (const post of posts) {
-    // Need full content — seed may lack it
     let content = post.content;
     if (!content) {
       const { data: full } = await db.from("posts").select("content").eq("id", post.id).maybeSingle();
@@ -171,18 +198,19 @@ export async function syncNicheInternalLinks(opts: {
         id: p.id,
         title: p.title,
         slug: p.slug,
-        focus_keyword: p.focus_keyword
+        focus_keyword: p.focus_keyword,
+        created_at: p.created_at
       }));
 
-    // Strip previous related; keep body. Re-link from clean-ish body:
-    // remove prior auto related, then re-apply (contextual only adds if phrase still plain)
     const next = applyInternalLinks(content, peers);
-    if (next === content) continue;
+    const relatedChanged = extractRelatedSection(content) !== extractRelatedSection(next);
+    if (next === content && !relatedChanged) continue;
 
     const { error: upErr } = await db
       .from("posts")
       .update({ content: next, updated_at: now })
       .eq("id", post.id);
+
     if (!upErr) updated += 1;
   }
 

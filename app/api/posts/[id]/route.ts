@@ -89,7 +89,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
                 id: data.id,
                 title: data.title,
                 slug: data.slug,
-                focus_keyword: data.focus_keyword
+                focus_keyword: data.focus_keyword,
+                created_at: data.created_at || new Date().toISOString()
               }
             : null
       });

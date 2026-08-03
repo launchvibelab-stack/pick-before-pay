@@ -86,7 +86,11 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         )}
         <div className="article-meta">
           <span className="category-pill">{post.category}</span>
-          <span>{new Date(post.created_at).toLocaleDateString("en-US")}</span>
+          <span>
+            {post.updated_at && post.updated_at !== post.created_at
+              ? `Updated ${new Date(post.updated_at).toLocaleDateString("en-US")}`
+              : new Date(post.created_at).toLocaleDateString("en-US")}
+          </span>
           {post.focus_keyword && <span>Keyword: {post.focus_keyword}</span>}
         </div>
         <h1>{post.title}</h1>

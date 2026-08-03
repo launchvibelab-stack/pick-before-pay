@@ -76,7 +76,7 @@ async function loadNichePeers(nicheId: string, excludePostId?: string): Promise<
   const db = getSupabaseAdmin();
   let query = db
     .from("posts")
-    .select("id, title, slug, focus_keyword")
+    .select("id, title, slug, focus_keyword, created_at")
     .eq("niche_id", nicheId)
     .eq("published", true)
     .order("created_at", { ascending: false })
