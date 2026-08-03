@@ -733,9 +733,19 @@ footer,
   box-shadow: 0 10px 28px rgba(10, 10, 10, 0.12);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-.cta-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 14px 32px rgba(10, 10, 10, 0.16);
+.cta-btn *,
+.prose a.cta-btn,
+.prose a.cta-btn *,
+.prose a.cta-btn strong,
+.prose a.cta-btn em,
+.prose a.cta-btn b {
+  color: #fff !important;
+  text-decoration: none !important;
+}
+.cta-btn:hover,
+.cta-btn:hover *,
+.prose a.cta-btn:hover,
+.prose a.cta-btn:hover * {
   color: #fff !important;
 }
 .cta-btn-lg {
