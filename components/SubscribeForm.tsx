@@ -25,7 +25,9 @@ export function SubscribeForm({ compact = false }: { compact?: boolean }) {
         return;
       }
       setStatus("ok");
-      setMessage("Thanks — check your inbox to confirm.");
+      setMessage(
+        "Thanks for subscribing. Upcoming reviews and free gifts will be sent to your email."
+      );
       setEmail("");
       setName("");
     } catch {
