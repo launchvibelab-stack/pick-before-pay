@@ -748,6 +748,10 @@ footer,
 .prose a.cta-btn:hover * {
   color: #fff !important;
 }
+.cta-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 32px rgba(10, 10, 10, 0.16);
+}
 .cta-btn-lg {
   width: 100%;
   max-width: 520px;
