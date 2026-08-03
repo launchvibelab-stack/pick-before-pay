@@ -24,6 +24,7 @@ export type Post = {
   published: boolean;
   indexed_at: string | null;
   index_status: IndexStatus;
+  newsletter_sent_at?: string | null;
   created_at: string;
   updated_at: string;
 };
