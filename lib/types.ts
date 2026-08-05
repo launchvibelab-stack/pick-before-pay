@@ -22,6 +22,7 @@ export type Post = {
   meta_description: string;
   cover_url: string | null;
   published: boolean;
+  scheduled_at?: string | null;
   indexed_at: string | null;
   index_status: IndexStatus;
   wordpress_posted_at?: string | null;

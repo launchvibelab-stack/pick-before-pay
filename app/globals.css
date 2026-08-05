@@ -982,6 +982,10 @@ td small { display: block; color: #8a8a96; margin-top: 4px; }
   background: rgba(26, 127, 75, 0.1);
   color: var(--success);
 }
+.status.scheduled {
+  background: rgba(47, 111, 237, 0.1);
+  color: var(--focus);
+}
 .danger {
   border: 1px solid rgba(196, 60, 60, 0.25);
   background: rgba(196, 60, 60, 0.06);

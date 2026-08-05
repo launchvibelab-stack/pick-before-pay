@@ -82,7 +82,7 @@ export async function GET(req: Request) {
   }
 
   const site =
-    (tokenJson.blog_id && tokenJson.blog_id !== "0" && tokenJson.blog_id !== 0
+    (tokenJson.blog_id && String(tokenJson.blog_id) !== "0"
       ? String(tokenJson.blog_id)
       : null) ||
     tokenJson.blog_url ||

@@ -45,8 +45,16 @@ export default async function Posts() {
                 <td>{p.category || "—"}</td>
                 <td>{p.focus_keyword || "—"}</td>
                 <td>
-                  <span className={p.published ? "status live" : "status"}>
-                    {p.published ? "Published" : "Draft"}
+                  <span
+                    className={
+                      p.published ? "status live" : p.scheduled_at ? "status scheduled" : "status"
+                    }
+                  >
+                    {p.published
+                      ? "Published"
+                      : p.scheduled_at
+                        ? `Scheduled ${new Date(p.scheduled_at).toLocaleString()}`
+                        : "Draft"}
                   </span>
                 </td>
                 <td>

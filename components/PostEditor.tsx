@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Niche, Post } from "@/lib/types";
 import { slugify } from "@/lib/slugify";
@@ -10,13 +10,24 @@ type Props = {
   post?: Post;
 };
 
+function toDatetimeLocalValue(iso?: string | null) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 export function PostEditor({ niches, post }: Props) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
-  const [loading, setLoading] = useState<"draft" | "publish" | null>(null);
+  const [loading, setLoading] = useState<"draft" | "schedule" | "publish" | null>(null);
   const [cover, setCover] = useState(post?.cover_url || "");
   const [slug, setSlug] = useState(post?.slug || "");
   const [slugTouched, setSlugTouched] = useState(Boolean(post?.slug));
+  const [scheduledLocal, setScheduledLocal] = useState(toDatetimeLocalValue(post?.scheduled_at));
+
+  const minLocal = useMemo(() => toDatetimeLocalValue(new Date(Date.now() + 60_000).toISOString()), []);
 
   async function upload(file: File) {
     const fd = new FormData();
@@ -27,12 +38,17 @@ export function PostEditor({ niches, post }: Props) {
     setCover(j.url);
   }
 
-  async function save(published: boolean) {
+  async function save(mode: "draft" | "schedule" | "publish") {
     const form = formRef.current;
     if (!form) return;
     if (!form.reportValidity()) return;
 
-    setLoading(published ? "publish" : "draft");
+    if (mode === "schedule" && !scheduledLocal) {
+      alert("Pick a date and time to schedule.");
+      return;
+    }
+
+    setLoading(mode);
     const fd = new FormData(form);
     const body = {
       title: String(fd.get("title") || ""),
@@ -43,7 +59,8 @@ export function PostEditor({ niches, post }: Props) {
       focus_keyword: String(fd.get("focus_keyword") || ""),
       affiliate_url: String(fd.get("affiliate_url") || ""),
       cover_url: cover,
-      published
+      published: mode === "publish",
+      scheduled_at: mode === "schedule" ? new Date(scheduledLocal).toISOString() : null
     };
 
     const url = post ? `/api/posts/${post.id}` : "/api/posts";
@@ -57,12 +74,14 @@ export function PostEditor({ niches, post }: Props) {
     setLoading(null);
     if (!r.ok) return alert(j.error || "Save failed");
     if (j.warning) alert(j.warning);
-    else if (published && j.wordpress_posted) {
+    else if (mode === "publish" && j.wordpress_posted) {
       alert(
         j.wordpress_post_url
           ? `Published. Satellite post live on WordPress.com:\n${j.wordpress_post_url}`
           : "Published. Satellite post queued on WordPress.com."
       );
+    } else if (mode === "schedule") {
+      alert(`Scheduled. The post will go live automatically around ${new Date(scheduledLocal).toLocaleString()}.`);
     }
     router.push("/admin/posts");
     router.refresh();
@@ -164,9 +183,8 @@ export function PostEditor({ niches, post }: Props) {
         />
         <small className="field-hint">
           Paste the full review as-is. Keep <code>YOUR_AFFILIATE_LINK</code> in links — it is replaced by the Affiliate URL
-          below. On publish: tables, H1→H2, CTA buttons, FAQ schema, plus internal links to other posts in the same niche
-          (inline + Related reviews, bi-directional sync). After Sinbyte succeeds, one companion SEO post is created on
-          WordPress.com with a link back to this review.
+          below. On publish: tables, H1→H2, CTA buttons, FAQ schema, plus internal links. After Sinbyte succeeds, one
+          WordPress.com companion post is created with a link back to this review.
         </small>
       </label>
 
@@ -183,9 +201,21 @@ export function PostEditor({ niches, post }: Props) {
         </small>
       </label>
 
+      <label>
+        Schedule publish (optional)
+        <input
+          type="datetime-local"
+          min={minLocal}
+          value={scheduledLocal}
+          onChange={(e) => setScheduledLocal(e.target.value)}
+        />
+        <small className="field-hint">
+          Uses your computer’s timezone. Cron checks every 5 minutes, then runs Sinbyte + WordPress.com companion.
+        </small>
+      </label>
+
       <p className="field-hint editor-publish-hint">
-        Default is draft so you can time the publish yourself. Publish runs Sinbyte indexing, then creates 1 WordPress.com
-        companion post linking to the original.
+        Save draft keeps it offline. Schedule waits for the time above. Publish goes live immediately.
       </p>
 
       <div className="editor-actions">
@@ -193,21 +223,29 @@ export function PostEditor({ niches, post }: Props) {
           type="button"
           className="btn-ghost"
           disabled={loading !== null}
-          onClick={() => save(false)}
+          onClick={() => save("draft")}
         >
           {loading === "draft" ? "Saving..." : "Save draft"}
         </button>
         <button
           type="button"
+          className="btn-ghost"
+          disabled={loading !== null || !scheduledLocal}
+          onClick={() => save("schedule")}
+        >
+          {loading === "schedule" ? "Scheduling..." : "Schedule"}
+        </button>
+        <button
+          type="button"
           className="primary-btn"
           disabled={loading !== null}
-          onClick={() => save(true)}
+          onClick={() => save("publish")}
         >
           {loading === "publish"
             ? "Publishing..."
             : post?.published
               ? "Update & keep published"
-              : "Publish"}
+              : "Publish now"}
         </button>
       </div>
     </form>

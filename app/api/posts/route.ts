@@ -1,14 +1,9 @@
 import { isAdmin } from "@/lib/auth";
+import { mergeWarnings, parseScheduledAt, runGoLiveSideEffects } from "@/lib/go-live";
 import { getNicheById } from "@/lib/niches";
 import { applySeoPipeline, syncNicheInternalLinks } from "@/lib/seo";
-import { maybeIndexPost } from "@/lib/sinbyte";
 import { getSupabaseAdmin } from "@/lib/supabase";
-import { maybeSyndicateToWordPress } from "@/lib/wordpress";
 import { NextResponse } from "next/server";
-
-function mergeWarnings(...parts: Array<string | undefined | null>) {
-  return parts.filter(Boolean).join(" ") || undefined;
-}
 
 export async function POST(req: Request) {
   if (!(await isAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -20,13 +15,22 @@ export async function POST(req: Request) {
   const niche_id = b.niche_id ? String(b.niche_id) : null;
   const affiliate_url = b.affiliate_url ? String(b.affiliate_url).trim() : null;
   const cover_url = b.cover_url || null;
-  const published = b.published === true || b.published === "true";
+  let published = b.published === true || b.published === "true";
+  let scheduled_at = parseScheduledAt(b.scheduled_at);
 
   if (!title || !content || !niche_id || !focus_keyword) {
     return NextResponse.json(
       { error: "Title, focus keyword, niche, and content are required" },
       { status: 400 }
     );
+  }
+
+  if (published) {
+    scheduled_at = null;
+  } else if (scheduled_at) {
+    if (new Date(scheduled_at).getTime() <= Date.now() - 30_000) {
+      return NextResponse.json({ error: "Scheduled time must be in the future." }, { status: 400 });
+    }
   }
 
   const niche = await getNicheById(niche_id);
@@ -55,6 +59,7 @@ export async function POST(req: Request) {
     meta_description: seo.meta_description,
     cover_url,
     published,
+    scheduled_at,
     index_status: published ? "pending" : null,
     updated_at: new Date().toISOString()
   };
@@ -62,33 +67,17 @@ export async function POST(req: Request) {
   const { data, error } = await getSupabaseAdmin().from("posts").insert(payload).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
-  let nicheSync = 0;
-  if (published && niche_id) {
-    try {
-      nicheSync = await syncNicheInternalLinks({
-        nicheId: niche_id,
-        seedPost: {
-          id: data.id,
-          title: data.title,
-          slug: data.slug,
-          focus_keyword: data.focus_keyword,
-          created_at: data.created_at || new Date().toISOString()
-        }
-      });
-    } catch {
-      nicheSync = 0;
-    }
+  if (!published) {
+    return NextResponse.json(
+      {
+        ...data,
+        warning: scheduled_at ? `Scheduled for ${new Date(scheduled_at).toISOString()}` : undefined
+      },
+      { status: 201 }
+    );
   }
 
-  const index = await maybeIndexPost({
-    id: data.id,
-    slug: data.slug,
-    title: data.title,
-    published,
-    previousStatus: null
-  });
-
-  const syndicate = await maybeSyndicateToWordPress({
+  const side = await runGoLiveSideEffects({
     id: data.id,
     title: data.title,
     excerpt: data.excerpt,
@@ -96,19 +85,20 @@ export async function POST(req: Request) {
     focus_keyword: data.focus_keyword,
     slug: data.slug,
     category: data.category,
-    published,
-    indexStatus: index?.index_status ?? data.index_status,
-    wordpressPostedAt: data.wordpress_posted_at ?? null
+    niche_id: data.niche_id,
+    created_at: data.created_at,
+    previousStatus: null,
+    wordpressPostedAt: null
   });
 
   return NextResponse.json(
     {
       ...data,
-      index_status: index?.index_status ?? data.index_status,
-      warning: mergeWarnings(index?.warning, syndicate?.warning),
-      wordpress_posted: syndicate?.posted === true,
-      wordpress_post_url: syndicate?.url,
-      niche_links_updated: nicheSync
+      index_status: side.index_status ?? data.index_status,
+      warning: side.warning,
+      wordpress_posted: side.wordpress_posted,
+      wordpress_post_url: side.wordpress_post_url,
+      niche_links_updated: side.niche_links_updated
     },
     { status: 201 }
   );

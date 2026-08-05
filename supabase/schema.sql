@@ -22,6 +22,7 @@ create table if not exists public.posts (
   meta_description text not null default '',
   cover_url text,
   published boolean not null default false,
+  scheduled_at timestamptz,
   indexed_at timestamptz,
   index_status text,
   wordpress_posted_at timestamptz,

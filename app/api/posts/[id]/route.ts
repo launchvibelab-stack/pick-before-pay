@@ -1,15 +1,10 @@
 import { isAdmin } from "@/lib/auth";
+import { mergeWarnings, parseScheduledAt, runGoLiveSideEffects } from "@/lib/go-live";
 import { getNicheById } from "@/lib/niches";
 import { applySeoPipeline, syncNicheInternalLinks } from "@/lib/seo";
-import { maybeIndexPost } from "@/lib/sinbyte";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import type { IndexStatus } from "@/lib/types";
-import { maybeSyndicateToWordPress } from "@/lib/wordpress";
 import { NextResponse } from "next/server";
-
-function mergeWarnings(...parts: Array<string | undefined | null>) {
-  return parts.filter(Boolean).join(" ") || undefined;
-}
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await isAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -30,13 +25,24 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const niche_id = b.niche_id ? String(b.niche_id) : null;
   const affiliate_url = b.affiliate_url ? String(b.affiliate_url).trim() : null;
   const cover_url = b.cover_url !== undefined ? b.cover_url || null : existing.cover_url;
-  const published = b.published === true || b.published === "true";
+  let published = b.published === true || b.published === "true";
+  let scheduled_at = parseScheduledAt(b.scheduled_at);
 
   if (!title || !content || !niche_id || !focus_keyword) {
     return NextResponse.json(
       { error: "Title, focus keyword, niche, and content are required" },
       { status: 400 }
     );
+  }
+
+  if (published) {
+    scheduled_at = null;
+  } else if (scheduled_at) {
+    if (new Date(scheduled_at).getTime() <= Date.now() - 30_000) {
+      return NextResponse.json({ error: "Scheduled time must be in the future." }, { status: 400 });
+    }
+  } else {
+    scheduled_at = null;
   }
 
   const niche = await getNicheById(niche_id);
@@ -53,6 +59,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     excludePostId: id
   });
 
+  const goingLive = published && !existing.published;
+
   const payload = {
     title,
     slug: seo.slug,
@@ -66,6 +74,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     meta_description: seo.meta_description,
     cover_url,
     published,
+    scheduled_at,
+    ...(goingLive ? { index_status: "pending" as const } : {}),
     updated_at: new Date().toISOString()
   };
 
@@ -77,46 +87,56 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
-  const nichesToSync = new Set<string>();
-  if (published && niche_id) nichesToSync.add(niche_id);
-  if (existing.niche_id && existing.niche_id !== niche_id) nichesToSync.add(existing.niche_id);
-  if (!published && existing.published && existing.niche_id) nichesToSync.add(existing.niche_id);
+  // Niche sync when already live, or unpublish/move niche
+  if (published && !goingLive) {
+    const nichesToSync = new Set<string>();
+    if (niche_id) nichesToSync.add(niche_id);
+    if (existing.niche_id && existing.niche_id !== niche_id) nichesToSync.add(existing.niche_id);
 
-  let nicheSync = 0;
-  for (const nid of nichesToSync) {
-    try {
-      nicheSync += await syncNicheInternalLinks({
-        nicheId: nid,
-        seedPost:
-          published && nid === niche_id
-            ? {
-                id: data.id,
-                title: data.title,
-                slug: data.slug,
-                focus_keyword: data.focus_keyword,
-                created_at: data.created_at || new Date().toISOString()
-              }
-            : null
-      });
-    } catch {
-      /* keep save successful even if sync fails */
+    let nicheSync = 0;
+    for (const nid of nichesToSync) {
+      try {
+        nicheSync += await syncNicheInternalLinks({
+          nicheId: nid,
+          seedPost:
+            nid === niche_id
+              ? {
+                  id: data.id,
+                  title: data.title,
+                  slug: data.slug,
+                  focus_keyword: data.focus_keyword,
+                  created_at: data.created_at || new Date().toISOString()
+                }
+              : null
+        });
+      } catch {
+        /* ignore */
+      }
     }
+
+    return NextResponse.json({
+      ...data,
+      niche_links_updated: nicheSync
+    });
   }
 
-  const index = await maybeIndexPost({
-    id: data.id,
-    slug: data.slug,
-    title: data.title,
-    published,
-    previousSlug: existing.slug,
-    previousStatus: existing.index_status as IndexStatus
-  });
+  if (!published) {
+    if (existing.published && existing.niche_id) {
+      try {
+        await syncNicheInternalLinks({ nicheId: existing.niche_id });
+      } catch {
+        /* ignore */
+      }
+    }
+    return NextResponse.json({
+      ...data,
+      warning: scheduled_at
+        ? `Scheduled for ${new Date(scheduled_at).toLocaleString()}`
+        : undefined
+    });
+  }
 
-  const indexStatus =
-    index?.index_status ??
-    (published ? (existing.index_status as string | null) : null);
-
-  const syndicate = await maybeSyndicateToWordPress({
+  const side = await runGoLiveSideEffects({
     id: data.id,
     title: data.title,
     excerpt: data.excerpt,
@@ -124,23 +144,20 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     focus_keyword: data.focus_keyword,
     slug: data.slug,
     category: data.category,
-    published,
-    indexStatus:
-      index?.index_status === "submitted"
-        ? "submitted"
-        : existing.index_status === "submitted" && published && !existing.wordpress_posted_at
-          ? "submitted"
-          : indexStatus,
+    niche_id: data.niche_id,
+    created_at: data.created_at,
+    previousSlug: existing.slug,
+    previousStatus: existing.index_status as IndexStatus,
     wordpressPostedAt: existing.wordpress_posted_at ?? null
   });
 
   return NextResponse.json({
     ...data,
-    index_status: index?.index_status ?? data.index_status,
-    warning: mergeWarnings(index?.warning, syndicate?.warning),
-    wordpress_posted: syndicate?.posted === true,
-    wordpress_post_url: syndicate?.url,
-    niche_links_updated: nicheSync
+    index_status: side.index_status ?? data.index_status,
+    warning: mergeWarnings(side.warning),
+    wordpress_posted: side.wordpress_posted,
+    wordpress_post_url: side.wordpress_post_url,
+    niche_links_updated: side.niche_links_updated
   });
 }
 
