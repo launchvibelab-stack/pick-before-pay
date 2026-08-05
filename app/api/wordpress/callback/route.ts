@@ -81,12 +81,19 @@ export async function GET(req: Request) {
     );
   }
 
+  const site =
+    (tokenJson.blog_id && tokenJson.blog_id !== "0" && tokenJson.blog_id !== 0
+      ? String(tokenJson.blog_id)
+      : null) ||
+    tokenJson.blog_url ||
+    "your-site.wordpress.com";
+
   return new NextResponse(
     `<!doctype html><html><body style="font-family:system-ui;padding:32px;max-width:720px;line-height:1.5">
       <h1>WordPress.com connected</h1>
       <p>Copy these into Vercel env (Production), then redeploy:</p>
-      <pre style="white-space:pre-wrap;background:#f4f4f6;padding:16px;border-radius:12px">WORDPRESS_COM_TOKEN=${tokenJson.access_token}
-WORDPRESS_COM_SITE=${tokenJson.blog_id || tokenJson.blog_url || "your-site.wordpress.com"}</pre>
+      <pre style="white-space:pre-wrap;background:#f4f4f6;padding:16px;border-radius:12px;user-select:all">WORDPRESS_COM_TOKEN=${tokenJson.access_token}
+WORDPRESS_COM_SITE=${site}</pre>
       <p>Keep this token private. You can close this tab after saving.</p>
     </body></html>`,
     { headers: { "content-type": "text/html; charset=utf-8" } }
