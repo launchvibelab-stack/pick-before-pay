@@ -24,6 +24,8 @@ create table if not exists public.posts (
   published boolean not null default false,
   indexed_at timestamptz,
   index_status text,
+  wordpress_posted_at timestamptz,
+  wordpress_post_url text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

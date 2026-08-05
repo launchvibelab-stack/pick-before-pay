@@ -3,7 +3,12 @@ import { getNicheById } from "@/lib/niches";
 import { applySeoPipeline, syncNicheInternalLinks } from "@/lib/seo";
 import { maybeIndexPost } from "@/lib/sinbyte";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { maybeSyndicateToWordPress } from "@/lib/wordpress";
 import { NextResponse } from "next/server";
+
+function mergeWarnings(...parts: Array<string | undefined | null>) {
+  return parts.filter(Boolean).join(" ") || undefined;
+}
 
 export async function POST(req: Request) {
   if (!(await isAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -83,11 +88,26 @@ export async function POST(req: Request) {
     previousStatus: null
   });
 
+  const syndicate = await maybeSyndicateToWordPress({
+    id: data.id,
+    title: data.title,
+    excerpt: data.excerpt,
+    content: data.content,
+    focus_keyword: data.focus_keyword,
+    slug: data.slug,
+    category: data.category,
+    published,
+    indexStatus: index?.index_status ?? data.index_status,
+    wordpressPostedAt: data.wordpress_posted_at ?? null
+  });
+
   return NextResponse.json(
     {
       ...data,
       index_status: index?.index_status ?? data.index_status,
-      warning: index?.warning,
+      warning: mergeWarnings(index?.warning, syndicate?.warning),
+      wordpress_posted: syndicate?.posted === true,
+      wordpress_post_url: syndicate?.url,
       niche_links_updated: nicheSync
     },
     { status: 201 }

@@ -30,6 +30,7 @@ export default async function Posts() {
               <th>Keyword</th>
               <th>Status</th>
               <th>Index</th>
+              <th>WP.com</th>
               <th>Created</th>
               <th></th>
             </tr>
@@ -50,6 +51,15 @@ export default async function Posts() {
                 </td>
                 <td>
                   <span className="status">{p.index_status || "—"}</span>
+                </td>
+                <td>
+                  {p.wordpress_post_url ? (
+                    <a href={p.wordpress_post_url} target="_blank" rel="noreferrer" className="status live">
+                      Live
+                    </a>
+                  ) : (
+                    <span className="status">—</span>
+                  )}
                 </td>
                 <td>{new Date(p.created_at).toLocaleDateString("en-US")}</td>
                 <td style={{ display: "flex", gap: 8 }}>

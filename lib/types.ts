@@ -24,6 +24,8 @@ export type Post = {
   published: boolean;
   indexed_at: string | null;
   index_status: IndexStatus;
+  wordpress_posted_at?: string | null;
+  wordpress_post_url?: string | null;
   created_at: string;
   updated_at: string;
 };

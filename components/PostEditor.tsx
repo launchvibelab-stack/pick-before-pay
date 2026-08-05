@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Niche, Post } from "@/lib/types";
 import { slugify } from "@/lib/slugify";
@@ -12,7 +12,8 @@ type Props = {
 
 export function PostEditor({ niches, post }: Props) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const [loading, setLoading] = useState<"draft" | "publish" | null>(null);
   const [cover, setCover] = useState(post?.cover_url || "");
   const [slug, setSlug] = useState(post?.slug || "");
   const [slugTouched, setSlugTouched] = useState(Boolean(post?.slug));
@@ -26,10 +27,13 @@ export function PostEditor({ niches, post }: Props) {
     setCover(j.url);
   }
 
-  async function submit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setLoading(true);
-    const fd = new FormData(e.currentTarget);
+  async function save(published: boolean) {
+    const form = formRef.current;
+    if (!form) return;
+    if (!form.reportValidity()) return;
+
+    setLoading(published ? "publish" : "draft");
+    const fd = new FormData(form);
     const body = {
       title: String(fd.get("title") || ""),
       slug: String(fd.get("slug") || ""),
@@ -39,7 +43,7 @@ export function PostEditor({ niches, post }: Props) {
       focus_keyword: String(fd.get("focus_keyword") || ""),
       affiliate_url: String(fd.get("affiliate_url") || ""),
       cover_url: cover,
-      published: fd.get("published") === "true"
+      published
     };
 
     const url = post ? `/api/posts/${post.id}` : "/api/posts";
@@ -50,9 +54,16 @@ export function PostEditor({ niches, post }: Props) {
       body: JSON.stringify(body)
     });
     const j = await r.json();
-    setLoading(false);
+    setLoading(null);
     if (!r.ok) return alert(j.error || "Save failed");
     if (j.warning) alert(j.warning);
+    else if (published && j.wordpress_posted) {
+      alert(
+        j.wordpress_post_url
+          ? `Published. Satellite post live on WordPress.com:\n${j.wordpress_post_url}`
+          : "Published. Satellite post queued on WordPress.com."
+      );
+    }
     router.push("/admin/posts");
     router.refresh();
   }
@@ -69,7 +80,13 @@ export function PostEditor({ niches, post }: Props) {
   }
 
   return (
-    <form className="editor" onSubmit={submit}>
+    <form
+      className="editor"
+      ref={formRef}
+      onSubmit={(e) => {
+        e.preventDefault();
+      }}
+    >
       <label>
         Niche *
         <select name="niche_id" required defaultValue={post?.niche_id || ""}>
@@ -148,7 +165,8 @@ export function PostEditor({ niches, post }: Props) {
         <small className="field-hint">
           Paste the full review as-is. Keep <code>YOUR_AFFILIATE_LINK</code> in links — it is replaced by the Affiliate URL
           below. On publish: tables, H1→H2, CTA buttons, FAQ schema, plus internal links to other posts in the same niche
-          (inline + Related reviews, bi-directional sync).
+          (inline + Related reviews, bi-directional sync). After Sinbyte succeeds, one companion SEO post is created on
+          WordPress.com with a link back to this review.
         </small>
       </label>
 
@@ -165,14 +183,33 @@ export function PostEditor({ niches, post }: Props) {
         </small>
       </label>
 
-      <label className="check">
-        <input type="checkbox" name="published" value="true" defaultChecked={post?.published ?? true} />
-        Publish now (submits URL to Sinbyte when published)
-      </label>
+      <p className="field-hint editor-publish-hint">
+        Default is draft so you can time the publish yourself. Publish runs Sinbyte indexing, then creates 1 WordPress.com
+        companion post linking to the original.
+      </p>
 
-      <button className="primary-btn" disabled={loading}>
-        {loading ? "Saving..." : post ? "Update post" : "Publish post"}
-      </button>
+      <div className="editor-actions">
+        <button
+          type="button"
+          className="btn-ghost"
+          disabled={loading !== null}
+          onClick={() => save(false)}
+        >
+          {loading === "draft" ? "Saving..." : "Save draft"}
+        </button>
+        <button
+          type="button"
+          className="primary-btn"
+          disabled={loading !== null}
+          onClick={() => save(true)}
+        >
+          {loading === "publish"
+            ? "Publishing..."
+            : post?.published
+              ? "Update & keep published"
+              : "Publish"}
+        </button>
+      </div>
     </form>
   );
 }

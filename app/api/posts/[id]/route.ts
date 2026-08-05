@@ -4,7 +4,12 @@ import { applySeoPipeline, syncNicheInternalLinks } from "@/lib/seo";
 import { maybeIndexPost } from "@/lib/sinbyte";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import type { IndexStatus } from "@/lib/types";
+import { maybeSyndicateToWordPress } from "@/lib/wordpress";
 import { NextResponse } from "next/server";
+
+function mergeWarnings(...parts: Array<string | undefined | null>) {
+  return parts.filter(Boolean).join(" ") || undefined;
+}
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await isAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -75,7 +80,6 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const nichesToSync = new Set<string>();
   if (published && niche_id) nichesToSync.add(niche_id);
   if (existing.niche_id && existing.niche_id !== niche_id) nichesToSync.add(existing.niche_id);
-  // Unpublish / niche move: refresh old niche too
   if (!published && existing.published && existing.niche_id) nichesToSync.add(existing.niche_id);
 
   let nicheSync = 0;
@@ -108,10 +112,34 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     previousStatus: existing.index_status as IndexStatus
   });
 
+  const indexStatus =
+    index?.index_status ??
+    (published ? (existing.index_status as string | null) : null);
+
+  const syndicate = await maybeSyndicateToWordPress({
+    id: data.id,
+    title: data.title,
+    excerpt: data.excerpt,
+    content: data.content,
+    focus_keyword: data.focus_keyword,
+    slug: data.slug,
+    category: data.category,
+    published,
+    indexStatus:
+      index?.index_status === "submitted"
+        ? "submitted"
+        : existing.index_status === "submitted" && published && !existing.wordpress_posted_at
+          ? "submitted"
+          : indexStatus,
+    wordpressPostedAt: existing.wordpress_posted_at ?? null
+  });
+
   return NextResponse.json({
     ...data,
     index_status: index?.index_status ?? data.index_status,
-    warning: index?.warning,
+    warning: mergeWarnings(index?.warning, syndicate?.warning),
+    wordpress_posted: syndicate?.posted === true,
+    wordpress_post_url: syndicate?.url,
     niche_links_updated: nicheSync
   });
 }
