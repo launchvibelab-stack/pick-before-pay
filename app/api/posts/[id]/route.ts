@@ -1,15 +1,10 @@
 import { isAdmin } from "@/lib/auth";
-import { maybeNotifySubscribers } from "@/lib/getresponse";
 import { getNicheById } from "@/lib/niches";
 import { applySeoPipeline, syncNicheInternalLinks } from "@/lib/seo";
 import { maybeIndexPost } from "@/lib/sinbyte";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import type { IndexStatus } from "@/lib/types";
 import { NextResponse } from "next/server";
-
-function mergeWarnings(...parts: Array<string | undefined | null>) {
-  return parts.filter(Boolean).join(" ") || undefined;
-}
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await isAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -113,28 +108,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     previousStatus: existing.index_status as IndexStatus
   });
 
-  const notify = await maybeNotifySubscribers({
-    id: data.id,
-    title: data.title,
-    excerpt: data.excerpt,
-    slug: data.slug,
-    published,
-    wasPublished: Boolean(existing.published),
-    newsletterSentAt: existing.newsletter_sent_at ?? null
-  });
-
-  if (notify?.sent) {
-    await getSupabaseAdmin()
-      .from("posts")
-      .update({ newsletter_sent_at: new Date().toISOString() })
-      .eq("id", data.id);
-  }
-
   return NextResponse.json({
     ...data,
     index_status: index?.index_status ?? data.index_status,
-    warning: mergeWarnings(index?.warning, notify?.warning),
-    newsletter_sent: notify?.sent === true,
+    warning: index?.warning,
     niche_links_updated: nicheSync
   });
 }

@@ -52,8 +52,7 @@ export function PostEditor({ niches, post }: Props) {
     const j = await r.json();
     setLoading(false);
     if (!r.ok) return alert(j.error || "Save failed");
-    if (j.newsletter_sent) alert("Published. Subscriber email queued via GetResponse.");
-    else if (j.warning) alert(j.warning);
+    if (j.warning) alert(j.warning);
     router.push("/admin/posts");
     router.refresh();
   }
@@ -168,7 +167,7 @@ export function PostEditor({ niches, post }: Props) {
 
       <label className="check">
         <input type="checkbox" name="published" value="true" defaultChecked={post?.published ?? true} />
-        Publish now (Sinbyte indexing + email subscribers on first publish only)
+        Publish now (submits URL to Sinbyte when published)
       </label>
 
       <button className="primary-btn" disabled={loading}>
