@@ -201,18 +201,21 @@ export function PostEditor({ niches, post }: Props) {
         </small>
       </label>
 
-      <label>
-        Schedule publish (optional)
-        <input
-          type="datetime-local"
-          min={minLocal}
-          value={scheduledLocal}
-          onChange={(e) => setScheduledLocal(e.target.value)}
-        />
+      <div className="schedule-box">
+        <label>
+          Schedule publish
+          <input
+            type="datetime-local"
+            min={minLocal}
+            value={scheduledLocal}
+            onChange={(e) => setScheduledLocal(e.target.value)}
+          />
+        </label>
         <small className="field-hint">
-          Uses your computer’s timezone. Cron checks every 5 minutes, then runs Sinbyte + WordPress.com companion.
+          Pick a time (your computer timezone), then click <b>Schedule</b>. Cron checks every 5 minutes, then runs
+          Sinbyte + WordPress.com companion.
         </small>
-      </label>
+      </div>
 
       <p className="field-hint editor-publish-hint">
         Save draft keeps it offline. Schedule waits for the time above. Publish goes live immediately.
@@ -229,8 +232,8 @@ export function PostEditor({ niches, post }: Props) {
         </button>
         <button
           type="button"
-          className="btn-ghost"
-          disabled={loading !== null || !scheduledLocal}
+          className="btn-schedule"
+          disabled={loading !== null}
           onClick={() => save("schedule")}
         >
           {loading === "schedule" ? "Scheduling..." : "Schedule"}

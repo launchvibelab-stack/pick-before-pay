@@ -917,9 +917,42 @@ footer,
   align-items: center;
   margin-top: 8px;
 }
-.editor-actions .btn-ghost {
+.editor-actions .btn-ghost,
+.editor-actions .btn-schedule {
   border-radius: 12px;
   padding: 12px 16px;
+}
+.btn-schedule {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid #9bb6f5;
+  background: rgba(47, 111, 237, 0.08);
+  color: var(--focus);
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.btn-schedule:hover {
+  background: rgba(47, 111, 237, 0.14);
+  border-color: var(--focus);
+}
+.btn-schedule:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.schedule-box {
+  margin-top: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  background: rgba(47, 111, 237, 0.04);
+}
+.schedule-box label {
+  margin: 0;
 }
 .editor-publish-hint {
   margin: 4px 0 0;
