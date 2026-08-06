@@ -53,7 +53,7 @@ export default async function Posts() {
                     {p.published
                       ? "Published"
                       : p.scheduled_at
-                        ? `Scheduled ${new Date(p.scheduled_at).toLocaleString()}`
+                        ? `Scheduled ${new Date(p.scheduled_at).toISOString().slice(0, 10)} (~21:00 VN)`
                         : "Draft"}
                   </span>
                 </td>

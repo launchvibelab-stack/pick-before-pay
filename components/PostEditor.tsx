@@ -10,12 +10,18 @@ type Props = {
   post?: Post;
 };
 
-function toDatetimeLocalValue(iso?: string | null) {
+function toDateInputValue(iso?: string | null) {
   if (!iso) return "";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
+  // Stored as YYYY-MM-DDT14:00:00.000Z for the intended calendar day
+  return d.toISOString().slice(0, 10);
+}
+
+function todayDateInputValue() {
+  const now = new Date();
   const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
 
 export function PostEditor({ niches, post }: Props) {
@@ -25,9 +31,9 @@ export function PostEditor({ niches, post }: Props) {
   const [cover, setCover] = useState(post?.cover_url || "");
   const [slug, setSlug] = useState(post?.slug || "");
   const [slugTouched, setSlugTouched] = useState(Boolean(post?.slug));
-  const [scheduledLocal, setScheduledLocal] = useState(toDatetimeLocalValue(post?.scheduled_at));
+  const [scheduledDate, setScheduledDate] = useState(toDateInputValue(post?.scheduled_at));
 
-  const minLocal = useMemo(() => toDatetimeLocalValue(new Date(Date.now() + 60_000).toISOString()), []);
+  const minDate = useMemo(() => todayDateInputValue(), []);
 
   async function upload(file: File) {
     const fd = new FormData();
@@ -43,8 +49,8 @@ export function PostEditor({ niches, post }: Props) {
     if (!form) return;
     if (!form.reportValidity()) return;
 
-    if (mode === "schedule" && !scheduledLocal) {
-      alert("Pick a date and time to schedule.");
+    if (mode === "schedule" && !scheduledDate) {
+      alert("Pick a publish date.");
       return;
     }
 
@@ -60,7 +66,7 @@ export function PostEditor({ niches, post }: Props) {
       affiliate_url: String(fd.get("affiliate_url") || ""),
       cover_url: cover,
       published: mode === "publish",
-      scheduled_at: mode === "schedule" ? new Date(scheduledLocal).toISOString() : null
+      scheduled_at: mode === "schedule" ? scheduledDate : null
     };
 
     const url = post ? `/api/posts/${post.id}` : "/api/posts";
@@ -81,7 +87,7 @@ export function PostEditor({ niches, post }: Props) {
           : "Published. Satellite post queued on WordPress.com."
       );
     } else if (mode === "schedule") {
-      alert(`Scheduled. The post will go live automatically around ${new Date(scheduledLocal).toLocaleString()}.`);
+      alert(`Scheduled for ${scheduledDate}. It will go live around 21:00 Vietnam time that day.`);
     }
     router.push("/admin/posts");
     router.refresh();
@@ -203,22 +209,22 @@ export function PostEditor({ niches, post }: Props) {
 
       <div className="schedule-box">
         <label>
-          Schedule publish
+          Schedule publish date
           <input
-            type="datetime-local"
-            min={minLocal}
-            value={scheduledLocal}
-            onChange={(e) => setScheduledLocal(e.target.value)}
+            type="date"
+            min={minDate}
+            value={scheduledDate}
+            onChange={(e) => setScheduledDate(e.target.value)}
           />
         </label>
         <small className="field-hint">
-          Pick a time (your computer timezone), then click <b>Schedule</b>. On the free Vercel plan, due posts go live
-          automatically around <b>21:00 Vietnam time (14:00 UTC)</b> each day. Publish now still works instantly.
+          Only pick the <b>day</b> — no time needed. That day around <b>21:00 Vietnam time</b>, the system publishes all
+          due posts. You can schedule many future days. <b>Publish now</b> still goes live immediately.
         </small>
       </div>
 
       <p className="field-hint editor-publish-hint">
-        Save draft keeps it offline. Schedule waits for the time above. Publish goes live immediately.
+        Save draft keeps it offline. Schedule = pick a date. Publish now = live immediately.
       </p>
 
       <div className="editor-actions">

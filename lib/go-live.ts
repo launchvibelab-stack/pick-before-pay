@@ -150,9 +150,22 @@ export async function publishDueScheduledPosts(): Promise<{
   return { published: results.filter((r) => !r.warning?.includes("Skip")).length, results };
 }
 
+/** Cron runs daily ~21:00 VN (= 14:00 UTC). Date-only values map to that slot. */
 export function parseScheduledAt(raw: unknown): string | null {
   if (raw == null || raw === "") return null;
-  const d = new Date(String(raw));
+  const s = String(raw).trim();
+  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if (dateOnly) {
+    let iso = `${dateOnly[1]}-${dateOnly[2]}-${dateOnly[3]}T14:00:00.000Z`;
+    // If today's 21:00 VN slot already passed, roll to the next day.
+    if (new Date(iso).getTime() <= Date.now()) {
+      const next = new Date(iso);
+      next.setUTCDate(next.getUTCDate() + 1);
+      iso = next.toISOString().replace(/\.\d{3}Z$/, ".000Z");
+    }
+    return iso;
+  }
+  const d = new Date(s);
   if (Number.isNaN(d.getTime())) return null;
   return d.toISOString();
 }
