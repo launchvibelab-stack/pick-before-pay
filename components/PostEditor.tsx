@@ -212,8 +212,8 @@ export function PostEditor({ niches, post }: Props) {
           />
         </label>
         <small className="field-hint">
-          Pick a time (your computer timezone), then click <b>Schedule</b>. Cron checks every 5 minutes, then runs
-          Sinbyte + WordPress.com companion.
+          Pick a time (your computer timezone), then click <b>Schedule</b>. On the free Vercel plan, due posts go live
+          automatically around <b>21:00 Vietnam time (14:00 UTC)</b> each day. Publish now still works instantly.
         </small>
       </div>
 
