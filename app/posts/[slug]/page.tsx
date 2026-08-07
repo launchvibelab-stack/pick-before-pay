@@ -3,12 +3,22 @@ import { MarkdownContent } from "@/components/MarkdownContent";
 import { SiteFooter } from "@/components/SiteFooter";
 import { TrackPageview } from "@/components/TrackPageview";
 import { extractFaqs } from "@/lib/content";
-import { getPostBySlug } from "@/lib/posts";
+import { getAllPublishedSlugs, getPostBySlug } from "@/lib/posts";
 import { siteUrl } from "@/lib/seo";
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 
-export const revalidate = 300;
+export const revalidate = 600;
+
+export async function generateStaticParams() {
+  try {
+    const rows = await getAllPublishedSlugs();
+    return rows.slice(0, 100).map((r) => ({ slug: r.slug }));
+  } catch {
+    return [];
+  }
+}
 
 export async function generateMetadata({
   params
@@ -95,7 +105,19 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         </div>
         <h1>{post.title}</h1>
         <p className="article-excerpt">{post.excerpt}</p>
-        {post.cover_url && <img className="article-cover" src={post.cover_url} alt={post.title} />}
+        {post.cover_url && (
+          <div className="article-cover-wrap">
+            <Image
+              className="article-cover"
+              src={post.cover_url}
+              alt={post.title}
+              width={1200}
+              height={630}
+              sizes="(max-width: 720px) 100vw, 720px"
+              priority
+            />
+          </div>
+        )}
         <article>
           <MarkdownContent content={post.content} affiliateUrl={post.affiliate_url} postId={post.id} />
         </article>

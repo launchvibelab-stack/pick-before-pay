@@ -651,6 +651,18 @@ footer,
   margin: 8px 0 36px;
   border: 1px solid var(--line);
 }
+.article-cover-wrap {
+  margin: 8px 0 36px;
+}
+.article-cover-wrap .article-cover {
+  margin: 0;
+  height: auto;
+  max-height: 440px;
+  width: 100%;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  object-fit: cover;
+}
 .prose {
   font-size: 17px;
   line-height: 1.8;

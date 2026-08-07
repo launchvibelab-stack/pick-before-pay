@@ -58,7 +58,7 @@ export async function getGetResponseSubscriberCount(): Promise<number | null> {
 
     const res = await fetch(url.toString(), {
       headers: { "X-Auth-Token": `api-key ${creds.apiKey}` },
-      next: { revalidate: 300 }
+      next: { revalidate: 600 }
     });
 
     if (!res.ok) return null;
