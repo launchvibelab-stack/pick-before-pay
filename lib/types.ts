@@ -21,6 +21,8 @@ export type Post = {
   meta_title: string;
   meta_description: string;
   cover_url: string | null;
+  editor_score?: number | null;
+  youtube_url?: string | null;
   published: boolean;
   scheduled_at?: string | null;
   indexed_at: string | null;

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Outfit, Newsreader } from "next/font/google";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import { GoogleAnalyticsPageviews } from "@/components/GoogleAnalyticsPageviews";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -23,7 +25,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://pickbeforepay.com";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "PickBeforePay — Honest product reviews",
+    default: "PickBeforePay - Honest product reviews",
     template: "%s | PickBeforePay"
   },
   description: "In-depth niche reviews to help you choose the right tools and products before you buy.",
@@ -39,7 +41,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${outfit.variable} ${newsreader.variable}`}>
-      <body>{children}</body>
+      <body>
+        <GoogleAnalytics />
+        <GoogleAnalyticsPageviews />
+        {children}
+      </body>
     </html>
   );
 }

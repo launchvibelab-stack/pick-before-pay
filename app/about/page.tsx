@@ -11,10 +11,28 @@ export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
   const profile = await getAboutProfile();
+  const title = `About ${profile.name}`;
+  const description = profile.headline || profile.bio.slice(0, 155);
+  const url = `${siteUrl()}/about`;
+  const image = profile.avatar_url || "/logo.png";
   return {
-    title: `About ${profile.name}`,
-    description: profile.headline || profile.bio.slice(0, 155),
-    alternates: { canonical: `${siteUrl()}/about` }
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title,
+      description,
+      url,
+      type: "profile",
+      siteName: "PickBeforePay",
+      images: [{ url: image }]
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+      images: [image]
+    }
   };
 }
 

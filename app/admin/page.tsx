@@ -50,7 +50,7 @@ export default async function AdminPage() {
         </div>
         <div>
           <span>Subscribers</span>
-          <b>{subscribers ?? "—"}</b>
+          <b>{subscribers ?? "-"}</b>
         </div>
       </div>
 
@@ -73,7 +73,7 @@ export default async function AdminPage() {
         <h2>Traffic by month</h2>
         <p className="card-lead">Pageviews and affiliate CTA clicks. Older than 3 months is deleted automatically.</p>
         {months.length === 0 ? (
-          <p className="muted-line">No traffic yet — stats appear after public visits and affiliate clicks.</p>
+          <p className="muted-line">No traffic yet - stats appear after public visits and affiliate clicks.</p>
         ) : (
           <div className="table-card analytics-table">
             <table>

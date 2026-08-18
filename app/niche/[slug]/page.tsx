@@ -23,7 +23,20 @@ export async function generateMetadata({
     title: `${niche.name} reviews`,
     description,
     alternates: { canonical: url },
-    openGraph: { title: `${niche.name} reviews`, description, url }
+    openGraph: {
+      title: `${niche.name} reviews`,
+      description,
+      url,
+      type: "website",
+      siteName: "PickBeforePay",
+      images: [{ url: "/logo.png" }]
+    },
+    twitter: {
+      card: "summary",
+      title: `${niche.name} reviews`,
+      description,
+      images: ["/logo.png"]
+    }
   };
 }
 
@@ -39,7 +52,7 @@ export default async function NichePage({ params }: { params: Promise<{ slug: st
       <main className="container section" style={{ paddingTop: 56 }}>
         <div className="section-head">
           <span className="eyebrow">Niche</span>
-          <h2>{niche.name}</h2>
+          <h1>{niche.name}</h1>
           {niche.description && (
             <p style={{ color: "var(--muted)", maxWidth: 640, marginTop: 12, lineHeight: 1.6 }}>
               {niche.description}

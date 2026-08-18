@@ -1,6 +1,4 @@
 import { SubscribeForm } from "@/components/SubscribeForm";
-import { SubscriberCount } from "@/components/SubscriberCount";
-import { Suspense } from "react";
 
 export function SiteFooter() {
   const year = new Date().getFullYear();
@@ -10,11 +8,11 @@ export function SiteFooter() {
       <div className="container">
         <div className="footer-subscribe">
           <div>
-            <h2 className="footer-sub-title">Get new reviews in your inbox</h2>
-            <p>Practical pick-before-you-pay notes. No spam — unsubscribe anytime.</p>
-            <Suspense fallback={null}>
-              <SubscriberCount />
-            </Suspense>
+            <h2 className="footer-sub-title">Free Buyer’s Scorecard</h2>
+            <p>
+              Get the PDF in your inbox now - score any tool or course before you buy. Short tips after;
+              unsubscribe anytime.
+            </p>
           </div>
           <SubscribeForm compact />
         </div>

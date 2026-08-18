@@ -1,17 +1,21 @@
 /** Normalize pasted review Markdown for SEO + conversion. */
 
-const AFFILIATE_PLACEHOLDERS = [
-  /YOUR_AFFILIATE_LINK/gi,
-  /\{\{\s*AFFILIATE_URL\s*\}\}/gi,
-  /%AFFILIATE_URL%/gi,
-  /\[AFFILIATE_LINK\]/gi
-];
+/** Only this placeholder becomes the affiliate URL (in markdown hrefs). */
+const AFFILIATE_HREF = /\]\(\s*YOUR_AFFILIATE_LINK\s*\)/gi;
 
-const CTA_TEXT =
-  /get .+ through our link|claim .+bonus|check current offer|buy .+ now|get started|claim your|exclusive .+bonus/i;
+export function replaceAffiliatePlaceholders(content: string, affiliateUrl: string): string {
+  const url = affiliateUrl.trim();
+  if (!url) return content;
 
-export function isCtaLinkText(text: string): boolean {
-  return CTA_TEXT.test(text.replace(/\s+/g, " ").trim());
+  let out = content;
+  // [YOUR_AFFILIATE_LINK](YOUR_AFFILIATE_LINK) → [Get started](real-url)
+  out = out.replace(
+    /\[YOUR_AFFILIATE_LINK\]\(\s*YOUR_AFFILIATE_LINK\s*\)/gi,
+    `[Get started](${url})`
+  );
+  // [Any label](YOUR_AFFILIATE_LINK) → [Any label](real-url)
+  out = out.replace(AFFILIATE_HREF, `](${url})`);
+  return out;
 }
 
 /** Convert content H1 (`#`) to H2 so the page title remains the only H1. Idempotent on re-save. */
@@ -28,24 +32,6 @@ export function demoteHeadingsForSeo(content: string): string {
     .join("\n");
 }
 
-export function replaceAffiliatePlaceholders(content: string, affiliateUrl: string): string {
-  const url = affiliateUrl.trim();
-  if (!url) return content;
-  let out = content;
-  for (const re of AFFILIATE_PLACEHOLDERS) {
-    out = out.replace(re, url);
-  }
-  return out;
-}
-
-/** Ensure at least one strong CTA exists when affiliate URL is set. */
-export function ensureAffiliateCtas(content: string, affiliateUrl: string): string {
-  const url = affiliateUrl.trim();
-  if (!url) return content;
-  if (content.includes(url)) return content;
-  return `${content.trim()}\n\n## Get started\n\n[Check current offer](${url})\n`;
-}
-
 export function normalizeReviewContent(content: string, affiliateUrl?: string | null): string {
   let out = content.replace(/\r\n/g, "\n").trim();
   // Drop a lone bold title line that duplicates the post H1
@@ -53,7 +39,6 @@ export function normalizeReviewContent(content: string, affiliateUrl?: string | 
   out = demoteHeadingsForSeo(out);
   if (affiliateUrl) {
     out = replaceAffiliatePlaceholders(out, affiliateUrl);
-    out = ensureAffiliateCtas(out, affiliateUrl);
   }
   return out.trim();
 }

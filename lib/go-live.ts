@@ -1,3 +1,4 @@
+import { revalidatePublicSurfaces } from "@/lib/revalidate-public";
 import { syncNicheInternalLinks } from "@/lib/seo";
 import { maybeIndexPost } from "@/lib/sinbyte";
 import { getSupabaseAdmin } from "@/lib/supabase";
@@ -60,6 +61,8 @@ export async function runGoLiveSideEffects(opts: {
 
   const indexStatus = index?.index_status ?? opts.previousStatus ?? null;
 
+  revalidatePublicSurfaces(opts.slug, opts.previousSlug);
+
   const syndicate = await maybeSyndicateToWordPress({
     id: opts.id,
     title: opts.title,
@@ -108,13 +111,16 @@ export async function publishDueScheduledPosts(): Promise<{
   const results: Array<{ id: string; slug: string; warning?: string }> = [];
 
   for (const post of due) {
+    const liveAt = new Date().toISOString();
     const { data: updated, error: upErr } = await getSupabaseAdmin()
       .from("posts")
       .update({
         published: true,
         scheduled_at: null,
         index_status: "pending",
-        updated_at: new Date().toISOString()
+        // Public "published" date = go-live day, not the day the draft was written.
+        created_at: liveAt,
+        updated_at: liveAt
       })
       .eq("id", post.id)
       .eq("published", false)

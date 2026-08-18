@@ -20,7 +20,7 @@ export default async function EditPost({ params }: { params: Promise<{ id: strin
           <h1>Edit review</h1>
         </div>
       </div>
-      <PostEditor niches={niches} post={post} />
+      <PostEditor key={post.id} niches={niches} post={post} />
     </main>
   );
 }

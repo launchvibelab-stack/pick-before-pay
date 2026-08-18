@@ -1,21 +1,47 @@
 import { Header } from "@/components/Header";
-import { PostCard } from "@/components/PostCard";
+import { RecentReviews } from "@/components/RecentReviews";
 import { SiteFooter } from "@/components/SiteFooter";
 import { TrackPageview } from "@/components/TrackPageview";
 import { getNiches } from "@/lib/niches";
 import { getPublishedPosts } from "@/lib/posts";
+import { siteUrl } from "@/lib/seo";
 import type { Niche, Post } from "@/lib/types";
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
 export const revalidate = 300;
+
+const HOME_TITLE = "PickBeforePay - Honest product reviews";
+const HOME_DESC =
+  "In-depth niche reviews to help you choose the right tools and products before you buy.";
+
+export const metadata: Metadata = {
+  title: { absolute: HOME_TITLE },
+  description: HOME_DESC,
+  alternates: { canonical: siteUrl() },
+  openGraph: {
+    title: HOME_TITLE,
+    description: HOME_DESC,
+    url: siteUrl(),
+    type: "website",
+    siteName: "PickBeforePay",
+    images: [{ url: "/logo.png" }]
+  },
+  twitter: {
+    card: "summary",
+    title: HOME_TITLE,
+    description: HOME_DESC,
+    images: ["/logo.png"]
+  }
+};
 
 export default async function Home() {
   let posts: Post[] = [];
   let niches: Niche[] = [];
   let error = "";
   try {
-    [posts, niches] = await Promise.all([getPublishedPosts(undefined, 6), getNiches()]);
+    [posts, niches] = await Promise.all([getPublishedPosts(), getNiches()]);
   } catch {
     error = "Supabase is not connected. Add environment variables and run schema.sql.";
   }
@@ -46,7 +72,7 @@ export default async function Home() {
                 <em>pick before you pay.</em>
               </h1>
               <p className="hero-lead">
-                Clear niche reviews, practical comparisons, and no hype — so you buy with confidence.
+                Clear niche reviews, practical comparisons, and no hype - so you buy with confidence.
               </p>
               <div className="hero-actions">
                 <a href="#latest" className="primary-btn">
@@ -81,20 +107,8 @@ export default async function Home() {
         </section>
 
         <section id="latest" className="container section" style={{ paddingTop: 0 }}>
-          <div className="section-head">
-            <span className="eyebrow">Latest</span>
-            <h2>Recent reviews</h2>
-          </div>
           {error && <div className="notice">{error}</div>}
-          {posts.length > 0 ? (
-            <div className="post-grid">
-              {posts.map((p) => (
-                <PostCard key={p.id} post={p} />
-              ))}
-            </div>
-          ) : (
-            !error && <div className="empty">No posts yet. Publish your first review in admin.</div>
-          )}
+          <RecentReviews posts={posts} />
         </section>
 
         <section id="about" className="about">
@@ -107,7 +121,7 @@ export default async function Home() {
             </h2>
             <p>
               PickBeforePay focuses on real usage, who a product is for, and whether it is worth the
-              money — before you commit.
+              money - before you commit.
             </p>
             <p style={{ marginTop: 18 }}>
               <Link href="/about" className="primary-btn">

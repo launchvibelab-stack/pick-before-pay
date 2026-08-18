@@ -31,6 +31,7 @@ export function PostEditor({ niches, post }: Props) {
   const [cover, setCover] = useState(post?.cover_url || "");
   const [slug, setSlug] = useState(post?.slug || "");
   const [slugTouched, setSlugTouched] = useState(Boolean(post?.slug));
+  const [youtubeUrl, setYoutubeUrl] = useState(post?.youtube_url || "");
   const [scheduledDate, setScheduledDate] = useState(toDateInputValue(post?.scheduled_at));
 
   const minDate = useMemo(() => todayDateInputValue(), []);
@@ -65,6 +66,8 @@ export function PostEditor({ niches, post }: Props) {
       focus_keyword: String(fd.get("focus_keyword") || ""),
       affiliate_url: String(fd.get("affiliate_url") || ""),
       cover_url: cover,
+      editor_score: fd.get("editor_score") ? Number(fd.get("editor_score")) : null,
+      youtube_url: youtubeUrl,
       published: mode === "publish",
       scheduled_at: mode === "schedule" ? scheduledDate : null
     };
@@ -159,13 +162,47 @@ export function PostEditor({ niches, post }: Props) {
       </div>
 
       <label>
+        Editor score (1.0-5.0) *
+        <input
+          name="editor_score"
+          type="number"
+          min={1}
+          max={5}
+          step={0.1}
+          defaultValue={post?.editor_score ?? ""}
+          placeholder="e.g. 4.2"
+        />
+        <small className="field-hint">
+          Your honest score for this product. Shown on the page and used in Review schema (must match). Required to
+          publish or schedule.
+        </small>
+      </label>
+
+      <label>
+        YouTube video (optional)
+        <input
+          name="youtube_url"
+          type="text"
+          inputMode="url"
+          autoComplete="off"
+          value={youtubeUrl}
+          onChange={(e) => setYoutubeUrl(e.target.value)}
+          placeholder="https://www.youtube.com/watch?v=… or https://youtu.be/…"
+        />
+        <small className="field-hint">
+          Works for new and already-published reviews. Paste a watch, youtu.be, Shorts, or embed link. Shown
+          after the cover; the player loads only when a reader clicks play.
+        </small>
+      </label>
+
+      <label>
         Excerpt
         <textarea
           name="excerpt"
           rows={3}
           maxLength={300}
           defaultValue={post?.excerpt || ""}
-          placeholder="Optional — auto-generated from content if empty"
+          placeholder="Optional - auto-generated from content if empty"
         />
       </label>
 
@@ -184,12 +221,13 @@ export function PostEditor({ niches, post }: Props) {
           rows={18}
           defaultValue={post?.content || ""}
           placeholder={
-            "Paste full review Markdown here.\nApp auto-handles: H1→H2 SEO, tables, YOUR_AFFILIATE_LINK → real URL, CTA buttons, FAQ schema."
+            "Paste full review Markdown here.\nUse [Get started](YOUR_AFFILIATE_LINK) - only YOUR_AFFILIATE_LINK is replaced by your Affiliate URL."
           }
         />
         <small className="field-hint">
-          Paste the full review as-is. Keep <code>YOUR_AFFILIATE_LINK</code> in links — it is replaced by the Affiliate URL
-          below. On publish: tables, H1→H2, CTA buttons, FAQ schema, plus internal links. After Sinbyte succeeds, one
+          Paste the full review as-is. Put <code>YOUR_AFFILIATE_LINK</code> only in the link URL, e.g.{" "}
+          <code>[Get started](YOUR_AFFILIATE_LINK)</code>. Other text is not turned into affiliate buttons.
+          On publish: tables, H1→H2, FAQ schema, plus internal links. After Sinbyte succeeds, one
           WordPress.com companion post is created with a link back to this review.
         </small>
       </label>
@@ -203,7 +241,8 @@ export function PostEditor({ niches, post }: Props) {
           placeholder="https://warriorplus.com/..."
         />
         <small className="field-hint">
-          Replaces every <code>YOUR_AFFILIATE_LINK</code> and turns those links into conversion buttons.
+          Replaces <code>YOUR_AFFILIATE_LINK</code> in link URLs only (e.g.{" "}
+          <code>[Get started](YOUR_AFFILIATE_LINK)</code>). Other links stay normal text links.
         </small>
       </label>
 
@@ -218,7 +257,7 @@ export function PostEditor({ niches, post }: Props) {
           />
         </label>
         <small className="field-hint">
-          Only pick the <b>day</b> — no time needed. That day around <b>21:00 Vietnam time</b>, the system publishes all
+          Only pick the <b>day</b> - no time needed. That day around <b>21:00 Vietnam time</b>, the system publishes all
           due posts. You can schedule many future days. <b>Publish now</b> still goes live immediately.
         </small>
       </div>

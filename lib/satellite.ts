@@ -82,7 +82,7 @@ export function buildSatelliteArticle(opts: {
 <p>${escapeHtml(excerpt)}</p>
 <p>Here are the key points worth checking before you spend money on this pick:</p>
 <ul>${bullets}</ul>
-<p>This is a short companion note. For the full breakdown — pros, cons, who it is for, and practical buying advice — read the original review on PickBeforePay.</p>
+<p>This is a short companion note. For the full breakdown - pros, cons, who it is for, and practical buying advice - read the original review on PickBeforePay.</p>
 <p><a href="${escapeHtml(origin)}"><strong>Read the full review →</strong></a></p>
 <p><em>Source: <a href="${escapeHtml(origin)}">${escapeHtml(opts.title)}</a> on PickBeforePay.</em></p>
 `.trim();

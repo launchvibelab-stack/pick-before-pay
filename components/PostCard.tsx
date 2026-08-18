@@ -5,7 +5,7 @@ import type { Post } from "@/lib/types";
 export function PostCard({ post }: { post: Post }) {
   return (
     <article className="post-card">
-      <Link href={`/posts/${post.slug}`} className="cover">
+      <Link href={`/posts/${post.slug}`} className="cover" aria-label={post.title}>
         {post.cover_url ? (
           <Image
             src={post.cover_url}
@@ -16,11 +16,14 @@ export function PostCard({ post }: { post: Post }) {
             loading="lazy"
           />
         ) : (
-          <span>REVIEW</span>
+          <span aria-hidden>REVIEW</span>
         )}
       </Link>
       <div className="post-body">
         <span className="category-pill">{post.category || "Review"}</span>
+        {typeof post.editor_score === "number" && post.editor_score >= 1 && (
+          <span className="score-pill">{Number(post.editor_score).toFixed(1)}/5</span>
+        )}
         <h2>
           <Link href={`/posts/${post.slug}`}>{post.title}</Link>
         </h2>

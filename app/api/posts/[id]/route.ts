@@ -1,9 +1,13 @@
 import { isAdmin } from "@/lib/auth";
 import { mergeWarnings, parseScheduledAt, runGoLiveSideEffects } from "@/lib/go-live";
 import { getNicheById } from "@/lib/niches";
+import { isMissingDbColumn } from "@/lib/posts";
+import { parseEditorScore } from "@/lib/rating";
+import { revalidatePublicSurfaces } from "@/lib/revalidate-public";
 import { applySeoPipeline, syncNicheInternalLinks } from "@/lib/seo";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import type { IndexStatus } from "@/lib/types";
+import { normalizeYoutubeUrl } from "@/lib/youtube";
 import { NextResponse } from "next/server";
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -25,12 +29,27 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const niche_id = b.niche_id ? String(b.niche_id) : null;
   const affiliate_url = b.affiliate_url ? String(b.affiliate_url).trim() : null;
   const cover_url = b.cover_url !== undefined ? b.cover_url || null : existing.cover_url;
+  const editor_score = parseEditorScore(b.editor_score);
+  const youtube = normalizeYoutubeUrl(b.youtube_url);
+  if (youtube.error) return NextResponse.json({ error: youtube.error }, { status: 400 });
+  const youtube_url = youtube.url;
   let published = b.published === true || b.published === "true";
   let scheduled_at = parseScheduledAt(b.scheduled_at);
 
   if (!title || !content || !niche_id || !focus_keyword) {
     return NextResponse.json(
       { error: "Title, focus keyword, niche, and content are required" },
+      { status: 400 }
+    );
+  }
+
+  if (b.editor_score != null && b.editor_score !== "" && editor_score == null) {
+    return NextResponse.json({ error: "Editor score must be between 1.0 and 5.0" }, { status: 400 });
+  }
+
+  if ((published || scheduled_at) && editor_score == null) {
+    return NextResponse.json(
+      { error: "Add an editor score (1.0-5.0) before publishing or scheduling." },
       { status: 400 }
     );
   }
@@ -60,6 +79,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   });
 
   const goingLive = published && !existing.published;
+  const liveAt = goingLive ? new Date().toISOString() : null;
 
   const payload = {
     title,
@@ -73,19 +93,39 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     meta_title: seo.meta_title,
     meta_description: seo.meta_description,
     cover_url,
+    editor_score,
+    youtube_url,
     published,
     scheduled_at,
-    ...(goingLive ? { index_status: "pending" as const } : {}),
+    ...(goingLive
+      ? {
+          index_status: "pending" as const,
+          // Draft written earlier → show the day it actually goes live.
+          created_at: liveAt as string
+        }
+      : {}),
     updated_at: new Date().toISOString()
   };
 
-  const { data, error } = await getSupabaseAdmin()
+  let { data, error } = await getSupabaseAdmin()
     .from("posts")
     .update(payload)
     .eq("id", id)
     .select()
     .single();
+  let youtubeSkipped = false;
+  if (isMissingDbColumn(error, "youtube_url")) {
+    const { youtube_url: _omit, ...rest } = payload;
+    const retry = await getSupabaseAdmin().from("posts").update(rest).eq("id", id).select().single();
+    data = retry.data;
+    error = retry.error;
+    youtubeSkipped = Boolean(youtube_url);
+  }
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (!data) return NextResponse.json({ error: "Save failed" }, { status: 400 });
+  const youtubeWarning = youtubeSkipped
+    ? "Saved without video. Run supabase/migration_youtube.sql in the Supabase SQL editor."
+    : undefined;
 
   // Niche sync when already live, or unpublish/move niche
   if (published && !goingLive) {
@@ -114,9 +154,11 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       }
     }
 
+    revalidatePublicSurfaces(data.slug, existing.slug);
     return NextResponse.json({
       ...data,
-      niche_links_updated: nicheSync
+      niche_links_updated: nicheSync,
+      warning: youtubeWarning
     });
   }
 
@@ -128,11 +170,13 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         /* ignore */
       }
     }
+    revalidatePublicSurfaces(existing.slug, seo.slug);
     return NextResponse.json({
       ...data,
-      warning: scheduled_at
-        ? `Scheduled for ${new Date(scheduled_at).toLocaleString()}`
-        : undefined
+      warning: mergeWarnings(
+        scheduled_at ? `Scheduled for ${new Date(scheduled_at).toLocaleString()}` : undefined,
+        youtubeWarning
+      )
     });
   }
 
@@ -154,7 +198,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   return NextResponse.json({
     ...data,
     index_status: side.index_status ?? data.index_status,
-    warning: mergeWarnings(side.warning),
+    warning: mergeWarnings(side.warning, youtubeWarning),
     wordpress_posted: side.wordpress_posted,
     wordpress_post_url: side.wordpress_post_url,
     niche_links_updated: side.niche_links_updated
@@ -167,7 +211,7 @@ export async function DELETE(_: Request, { params }: { params: Promise<{ id: str
 
   const { data: existing } = await getSupabaseAdmin()
     .from("posts")
-    .select("niche_id, published")
+    .select("niche_id, published, slug")
     .eq("id", id)
     .maybeSingle();
 
@@ -182,5 +226,6 @@ export async function DELETE(_: Request, { params }: { params: Promise<{ id: str
     }
   }
 
+  if (existing?.slug) revalidatePublicSurfaces(existing.slug);
   return NextResponse.json({ ok: true });
 }

@@ -25,7 +25,7 @@ export function SubscribeForm({ compact = false }: { compact?: boolean }) {
         return;
       }
       setStatus("ok");
-      setMessage("Thanks for subscribing. Upcoming reviews be sent to your email.");
+      setMessage("Check your inbox - your free Buyer’s Scorecard is on the way.");
       setEmail("");
       setName("");
     } catch {
@@ -57,7 +57,7 @@ export function SubscribeForm({ compact = false }: { compact?: boolean }) {
           autoComplete="email"
         />
         <button className="primary-btn" type="submit" disabled={status === "loading"}>
-          {status === "loading" ? "..." : "Subscribe"}
+          {status === "loading" ? "..." : "Get free Scorecard"}
         </button>
       </div>
       {message && (

@@ -18,6 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     { url: base, lastModified: new Date(), changeFrequency: "daily", priority: 1 },
+    { url: `${base}/about`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
     ...niches.map((n) => ({
       url: `${base}/niche/${n.slug}`,
       lastModified: new Date(),

@@ -1,4 +1,3 @@
-import { isCtaLinkText } from "@/lib/content";
 import type { Components } from "react-markdown";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -17,15 +16,25 @@ function linkIsAffiliate(href: string | undefined, affiliateUrl?: string | null)
   return false;
 }
 
+function looksLikeUrl(text: string) {
+  return /^https?:\/\//i.test(text.trim());
+}
+
 export function MarkdownContent({ content, affiliateUrl, postId }: Props) {
   const trackedHref = postId && affiliateUrl ? `/api/go/${postId}` : null;
 
   const components: Components = {
     a({ href, children, ...props }) {
-      const text = String(children ?? "");
-      const cta = linkIsAffiliate(href, affiliateUrl) || isCtaLinkText(text);
-      if (cta && href) {
+      // Keep emails as plain text (no mailto) so Cloudflare won't inject /cdn-cgi/email-protection links.
+      if (href?.startsWith("mailto:")) {
+        return <span>{children}</span>;
+      }
+      const text = String(children ?? "").trim();
+      // Only YOUR_AFFILIATE_LINK / the post affiliate URL become CTA buttons - not other phrases.
+      const affiliate = linkIsAffiliate(href, affiliateUrl);
+      if (affiliate && href) {
         const dest = trackedHref || href;
+        const label = !text || looksLikeUrl(text) || /YOUR_AFFILIATE_LINK/i.test(text) ? "Get started" : children;
         return (
           <a
             href={dest}
@@ -34,7 +43,7 @@ export function MarkdownContent({ content, affiliateUrl, postId }: Props) {
             target="_blank"
             {...props}
           >
-            {children}
+            {label}
           </a>
         );
       }
@@ -58,9 +67,12 @@ export function MarkdownContent({ content, affiliateUrl, postId }: Props) {
 
   return (
     <div className="prose">
+      {/* Cloudflare Scrape Shield: keep emails as plain text, not /cdn-cgi/email-protection */}
+      <span dangerouslySetInnerHTML={{ __html: "<!--email_off-->" }} />
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
         {content}
       </ReactMarkdown>
+      <span dangerouslySetInnerHTML={{ __html: "<!--/email_off-->" }} />
     </div>
   );
 }

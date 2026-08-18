@@ -67,7 +67,7 @@ export function NicheManager({ niches }: { niches: Niche[] }) {
           </label>
           <label>
             Slug preview
-            <input value={slugify(name) || "—"} readOnly />
+            <input value={slugify(name) || "-"} readOnly />
           </label>
         </div>
         <label>
@@ -98,7 +98,7 @@ export function NicheManager({ niches }: { niches: Niche[] }) {
                 <td>
                   <small>/{n.slug}</small>
                 </td>
-                <td>{n.description || "—"}</td>
+                <td>{n.description || "-"}</td>
                 <td style={{ display: "flex", gap: 8 }}>
                   <button type="button" className="primary-btn" style={{ padding: "7px 10px" }} onClick={() => setEditing(n)}>
                     Edit

@@ -21,6 +21,8 @@ create table if not exists public.posts (
   meta_title text not null default '',
   meta_description text not null default '',
   cover_url text,
+  editor_score numeric(2,1),
+  youtube_url text,
   published boolean not null default false,
   scheduled_at timestamptz,
   indexed_at timestamptz,
@@ -95,4 +97,23 @@ create policy "Public can read about profile"
 on public.about_profile for select
 to anon
 using (true);
+
+create table if not exists public.subscribers (
+  id uuid primary key default gen_random_uuid(),
+  email text not null unique,
+  name text,
+  unsubscribe_token text not null unique,
+  subscribed_at timestamptz not null default now(),
+  unsubscribed_at timestamptz,
+  drip_step integer not null default 0,
+  last_drip_at timestamptz,
+  created_at timestamptz not null default now(),
+  constraint subscribers_drip_step_range check (drip_step >= 0 and drip_step <= 5)
+);
+
+create index if not exists subscribers_active_drip_idx
+  on public.subscribers (drip_step, subscribed_at)
+  where unsubscribed_at is null;
+
+alter table public.subscribers enable row level security;
 
