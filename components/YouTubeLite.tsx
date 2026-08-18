@@ -43,7 +43,7 @@ export function YouTubeLite({ url, title }: { url: string; title: string }) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={thumb}
-              alt=""
+              alt={`${title} video review`}
               width={480}
               height={360}
               loading="lazy"
