@@ -22,7 +22,7 @@ export function YouTubeLite({ url, title }: { url: string; title: string }) {
 
   return (
     <figure className="yt-embed">
-      <figcaption>Video walkthrough</figcaption>
+      <figcaption>Video Review</figcaption>
       <div className="yt-lite">
         {playing ? (
           <iframe

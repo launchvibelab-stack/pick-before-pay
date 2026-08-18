@@ -12,12 +12,14 @@ export function RecentReviews({ posts }: { posts: Post[] }) {
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     if (!needle) return posts.slice(0, LATEST_COUNT);
+    const words = needle.split(/\s+/).filter(Boolean);
     return posts.filter((p) => {
-      const hay = [p.title, p.excerpt, p.category, p.focus_keyword]
+      const hay = [p.title, p.excerpt, p.category, p.focus_keyword, p.slug]
         .filter(Boolean)
         .join(" ")
-        .toLowerCase();
-      return hay.includes(needle);
+        .toLowerCase()
+        .replace(/[-_]+/g, " ");
+      return words.every((w) => hay.includes(w));
     });
   }, [posts, q]);
 

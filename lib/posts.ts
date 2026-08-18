@@ -27,15 +27,15 @@ export function isMissingDbColumn(
   );
 }
 
-export async function getPublishedPosts(nicheId?: string, limit = 24): Promise<Post[]> {
+export async function getPublishedPosts(nicheId?: string, limit?: number): Promise<Post[]> {
   const db = getSupabaseAdmin();
   const run = async (fields: string) => {
     let query = db
       .from("posts")
       .select(fields)
       .eq("published", true)
-      .order("created_at", { ascending: false })
-      .limit(limit);
+      .order("created_at", { ascending: false });
+    if (limit && limit > 0) query = query.limit(limit);
     if (nicheId) query = query.eq("niche_id", nicheId);
     return query;
   };
