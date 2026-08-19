@@ -5,18 +5,50 @@ import { useState } from "react";
 
 type Props = { initial: Banner };
 
-function toDatetimeLocal(iso: string | null): string {
+// ── datetime helpers ──────────────────────────────────────────
+
+/** ISO UTC → local parts for the custom picker */
+function isoToLocal(iso: string | null): {
+  date: string;   // "YYYY-MM-DD"
+  hour: string;   // "1"–"12"
+  minute: string; // "00"–"59"
+  ampm: "AM" | "PM";
+} {
+  const def = { date: "", hour: "12", minute: "00", ampm: "AM" as const };
+  if (!iso) return def;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return def;
+  const h24 = d.getHours();
+  const ampm = h24 < 12 ? "AM" : "PM";
+  const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  const mm   = pad(d.getMonth() + 1);
+  const dd   = pad(d.getDate());
+  return { date: `${yyyy}-${mm}-${dd}`, hour: String(h12), minute: pad(d.getMinutes()), ampm };
+}
+
+/** Local parts → ISO UTC string */
+function localToIso(date: string, hour: string, minute: string, ampm: "AM" | "PM"): string | null {
+  if (!date) return null;
+  let h = parseInt(hour, 10);
+  const m = parseInt(minute, 10);
+  if (isNaN(h) || isNaN(m) || h < 1 || h > 12 || m < 0 || m > 59) return null;
+  if (ampm === "PM" && h !== 12) h += 12;
+  if (ampm === "AM" && h === 12) h = 0;
+  const d = new Date(`${date}T${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:00`);
+  return isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+/** Pretty display of saved time */
+function displayIso(iso: string | null): string {
   if (!iso) return "";
   const d = new Date(iso);
   if (isNaN(d.getTime())) return "";
-  // "YYYY-MM-DDTHH:MM" format required by datetime-local
-  return d.toISOString().slice(0, 16);
-}
-
-function fromDatetimeLocal(val: string): string | null {
-  if (!val) return null;
-  const d = new Date(val);
-  return isNaN(d.getTime()) ? null : d.toISOString();
+  return d.toLocaleString("en-US", {
+    month: "short", day: "numeric", year: "numeric",
+    hour: "numeric", minute: "2-digit", hour12: true
+  });
 }
 
 export function BannerEditor({ initial }: Props) {
@@ -24,6 +56,18 @@ export function BannerEditor({ initial }: Props) {
   const [status, setStatus] = useState<"idle" | "saving" | "ok" | "error">("idle");
   const [msg, setMsg] = useState("");
   const [uploading, setUploading] = useState(false);
+
+  // datetime picker state
+  const initParts = isoToLocal(initial.expires_at);
+  const [dateVal, setDateVal]     = useState(initParts.date);
+  const [hourVal, setHourVal]     = useState(initParts.hour);
+  const [minuteVal, setMinuteVal] = useState(initParts.minute);
+  const [ampm, setAmpm]           = useState<"AM" | "PM">(initParts.ampm);
+
+  function updateExpiry(d: string, h: string, mi: string, ap: "AM" | "PM") {
+    const iso = localToIso(d, h, mi, ap);
+    update("expires_at", iso);
+  }
 
   function update<K extends keyof Banner>(key: K, value: Banner[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -108,17 +152,63 @@ export function BannerEditor({ initial }: Props) {
         <small className="field-hint">Link khi bấm nút CTA. Dùng affiliate link của bạn.</small>
       </label>
 
-      <label>
-        Countdown ends at *
-        <input
-          type="datetime-local"
-          value={toDatetimeLocal(form.expires_at)}
-          onChange={(e) => update("expires_at", fromDatetimeLocal(e.target.value))}
-        />
-        <small className="field-hint">
-          Nhập giờ theo múi giờ máy tính của bạn. Banner tự ẩn khi hết giờ.
-        </small>
-      </label>
+      <div style={{ marginBottom: 16 }}>
+        <span style={{ fontSize: 13, fontWeight: 550, color: "var(--muted)", display: "block", marginBottom: 8 }}>
+          Countdown ends at *
+        </span>
+        <div className="banner-dt-row">
+          <input
+            type="date"
+            className="banner-dt-date"
+            value={dateVal}
+            onChange={(e) => { setDateVal(e.target.value); updateExpiry(e.target.value, hourVal, minuteVal, ampm); }}
+          />
+          <input
+            type="text"
+            inputMode="numeric"
+            className="banner-dt-hour"
+            value={hourVal}
+            maxLength={2}
+            placeholder="12"
+            onChange={(e) => {
+              const v = e.target.value.replace(/\D/g, "").slice(0, 2);
+              setHourVal(v);
+              updateExpiry(dateVal, v, minuteVal, ampm);
+            }}
+          />
+          <span className="banner-dt-sep">:</span>
+          <input
+            type="text"
+            inputMode="numeric"
+            className="banner-dt-min"
+            value={minuteVal}
+            maxLength={2}
+            placeholder="00"
+            onChange={(e) => {
+              const v = e.target.value.replace(/\D/g, "").slice(0, 2);
+              setMinuteVal(v);
+              updateExpiry(dateVal, hourVal, v, ampm);
+            }}
+          />
+          <button
+            type="button"
+            className="banner-dt-ampm"
+            onClick={() => {
+              const next = ampm === "AM" ? "PM" : "AM";
+              setAmpm(next);
+              updateExpiry(dateVal, hourVal, minuteVal, next);
+            }}
+          >
+            {ampm}
+          </button>
+        </div>
+        {form.expires_at && (
+          <small className="field-hint" style={{ marginTop: 6, display: "block" }}>
+            Saved as: <b>{displayIso(form.expires_at)}</b> (your local time)
+          </small>
+        )}
+        <small className="field-hint">Banner tự ẩn khi hết giờ đếm ngược.</small>
+      </div>
 
       <label>
         Discount code (optional)
