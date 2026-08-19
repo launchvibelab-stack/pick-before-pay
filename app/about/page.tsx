@@ -1,10 +1,10 @@
 import { Header } from "@/components/Header";
+import { ProfileImageLightbox } from "@/components/ProfileImageLightbox";
 import { SiteFooter } from "@/components/SiteFooter";
 import { TrackPageview } from "@/components/TrackPageview";
 import { getAboutProfile } from "@/lib/about";
 import { siteUrl } from "@/lib/seo";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 
 export const revalidate = 300;
@@ -97,14 +97,7 @@ export default async function AboutPage() {
           <h2>My products</h2>
           {profile.profile_image_url && (
             <div className="about-profile-img-wrap">
-              <Image
-                src={profile.profile_image_url}
-                alt={profile.name}
-                width={1200}
-                height={675}
-                className="about-profile-img"
-                sizes="(max-width: 720px) 100vw, 720px"
-              />
+              <ProfileImageLightbox src={profile.profile_image_url} alt={profile.name} />
             </div>
           )}
           {profile.products.length === 0 ? (
