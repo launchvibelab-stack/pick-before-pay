@@ -1,3 +1,4 @@
+import { ExitIntentPopup } from "@/components/ExitIntentPopup";
 import { Header } from "@/components/Header";
 import { PromoBanner } from "@/components/PromoBanner";
 import { RecentReviews } from "@/components/RecentReviews";
@@ -54,6 +55,7 @@ export default async function Home() {
       <TrackPageview path="/" />
       <Header />
       {banner && <PromoBanner banner={banner} />}
+      {banner && <ExitIntentPopup banner={banner} />}
       <main>
         <section className="hero">
           <div className="container">
