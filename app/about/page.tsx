@@ -5,6 +5,7 @@ import { TrackPageview } from "@/components/TrackPageview";
 import { getAboutProfile } from "@/lib/about";
 import { siteUrl } from "@/lib/seo";
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 export const revalidate = 300;
