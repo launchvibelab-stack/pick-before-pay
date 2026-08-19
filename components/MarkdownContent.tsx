@@ -1,3 +1,4 @@
+import { CTA_PLACEHOLDER } from "@/lib/inlineCta";
 import type { Components } from "react-markdown";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -24,6 +25,26 @@ export function MarkdownContent({ content, affiliateUrl, postId }: Props) {
   const trackedHref = postId && affiliateUrl ? `/api/go/${postId}` : null;
 
   const components: Components = {
+    p({ children }) {
+      // Render inline CTA placeholder as a styled box
+      const text = String(children ?? "").trim();
+      if (text === CTA_PLACEHOLDER && trackedHref) {
+        return (
+          <div className="inline-cta-box">
+            <p className="inline-cta-label">Thinking about trying it?</p>
+            <a
+              href={trackedHref}
+              className="inline-cta-btn"
+              rel="nofollow sponsored noopener"
+              target="_blank"
+            >
+              Check today&rsquo;s price →
+            </a>
+          </div>
+        );
+      }
+      return <p>{children}</p>;
+    },
     a({ href, children, ...props }) {
       // Keep emails as plain text (no mailto) so Cloudflare won't inject /cdn-cgi/email-protection links.
       if (href?.startsWith("mailto:")) {

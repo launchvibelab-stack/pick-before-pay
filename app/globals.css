@@ -1394,6 +1394,52 @@ footer,
   .verdict-bar-cta  { padding: 9px 14px; font-size: 13px; }
 }
 
+/* —— Inline CTA box (injected between sections) —— */
+.inline-cta-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: linear-gradient(135deg, #f0f5ff 0%, #e8f0fe 100%);
+  border: 1px solid #c7d9fc;
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin: 32px 0;
+}
+.dark .inline-cta-box,
+[data-theme="dark"] .inline-cta-box {
+  background: linear-gradient(135deg, #1a2340 0%, #162040 100%);
+  border-color: #2a3d6e;
+}
+.inline-cta-label {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a3a8f;
+  flex: 1;
+}
+.dark .inline-cta-label,
+[data-theme="dark"] .inline-cta-label { color: #a8c4f8; }
+.inline-cta-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  background: #2f6fed;
+  color: #fff !important;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 9px 18px;
+  border-radius: 10px;
+  text-decoration: none !important;
+  white-space: nowrap;
+  transition: background 0.15s, transform 0.1s;
+}
+.inline-cta-btn:hover { background: #1e5fd4; transform: translateY(-1px); }
+@media (max-width: 480px) {
+  .inline-cta-box { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .inline-cta-btn { width: 100%; justify-content: center; }
+}
+
 /* —— Still Deciding Widget —— */
 .sd-widget {
   position: fixed;

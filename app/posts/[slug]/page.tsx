@@ -6,6 +6,7 @@ import { StillDecidingWidget } from "@/components/StillDecidingWidget";
 import { VerdictBar } from "@/components/VerdictBar";
 import { YouTubeLite } from "@/components/YouTubeLite";
 import { extractFaqs } from "@/lib/content";
+import { injectInlineCtas } from "@/lib/inlineCta";
 import { getAllPublishedSlugs, getPostBySlug } from "@/lib/posts";
 import { formatEditorScore, scoreStars } from "@/lib/rating";
 import { siteUrl } from "@/lib/seo";
@@ -212,7 +213,11 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         )}
         {post.youtube_url && <YouTubeLite url={post.youtube_url} title={post.title} />}
         <article>
-          <MarkdownContent content={post.content} affiliateUrl={post.affiliate_url} postId={post.id} />
+          <MarkdownContent
+            content={injectInlineCtas(post.content, post.affiliate_url)}
+            affiliateUrl={post.affiliate_url}
+            postId={post.id}
+          />
         </article>
       </main>
       <VerdictBar
