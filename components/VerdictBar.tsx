@@ -15,7 +15,12 @@ export function VerdictBar({ productName, score, stars, formattedScore, affiliat
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setVisible(window.scrollY > 320);
+    const onScroll = () => {
+      const passedIntro = window.scrollY > 320;
+      const remaining = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight);
+      const nearFooter = remaining < 220;
+      setVisible(passedIntro && !nearFooter);
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
