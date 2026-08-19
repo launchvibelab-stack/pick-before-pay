@@ -1309,7 +1309,7 @@ footer,
 /* —— Verdict bar —— */
 .verdict-bar {
   position: fixed;
-  bottom: 0;
+  bottom: -6px;
   left: 0;
   right: 0;
   z-index: 120;
@@ -1317,7 +1317,7 @@ footer,
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-top: 1px solid rgba(255,255,255,0.08);
-  padding: 12px 20px;
+  padding: 10px 20px 14px;
   animation: verdict-slide-up 0.25s ease;
 }
 @keyframes verdict-slide-up {
