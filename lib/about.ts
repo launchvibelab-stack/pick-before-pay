@@ -11,6 +11,7 @@ export type AboutProfile = {
   headline: string;
   bio: string;
   avatar_url: string | null;
+  profile_image_url: string | null;
   facebook_url: string;
   pinterest_url: string;
   telegram_url: string;
@@ -27,6 +28,7 @@ export const defaultAboutProfile = (): AboutProfile => ({
   headline: "Honest product reviews before you buy",
   bio: "I research niche digital products and share clear, practical reviews so you can decide with confidence.",
   avatar_url: null,
+  profile_image_url: null,
   facebook_url: "",
   pinterest_url: "",
   telegram_url: "",
@@ -46,6 +48,7 @@ function normalize(row: Record<string, unknown> | null | undefined): AboutProfil
     headline: String(row.headline || base.headline),
     bio: String(row.bio || base.bio),
     avatar_url: row.avatar_url ? String(row.avatar_url) : null,
+    profile_image_url: row.profile_image_url ? String(row.profile_image_url) : null,
     facebook_url: String(row.facebook_url || ""),
     pinterest_url: String(row.pinterest_url || ""),
     telegram_url: String(row.telegram_url || ""),
@@ -125,6 +128,7 @@ export async function saveAboutProfile(input: AboutProfile): Promise<AboutProfil
     headline: input.headline.trim(),
     bio: input.bio.trim(),
     avatar_url: input.avatar_url?.trim() || null,
+    profile_image_url: input.profile_image_url?.trim() || null,
     facebook_url: (input.facebook_url || "").trim(),
     pinterest_url: (input.pinterest_url || "").trim(),
     telegram_url: (input.telegram_url || "").trim(),

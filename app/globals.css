@@ -883,37 +883,66 @@ footer,
   color: var(--text);
 }
 .about-social:hover { border-color: var(--text); }
-.about-products {
-  display: grid;
-  gap: 12px;
+/* Profile image 16:9 above products grid */
+.about-profile-img-wrap {
+  margin-bottom: 20px;
+  border-radius: 14px;
+  overflow: hidden;
+  line-height: 0;
 }
-.about-product {
+.about-profile-img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16/9;
+  object-fit: cover;
   display: block;
-  padding: 18px 18px 16px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--bg-elevated);
-  transition: border-color 0.15s ease, transform 0.15s ease;
 }
-.about-product:hover {
+
+/* Products compact tile grid */
+.about-products-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+@media (max-width: 720px) {
+  .about-products-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 420px) {
+  .about-products-grid { grid-template-columns: repeat(2, 1fr); }
+}
+.about-product-tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  aspect-ratio: 1/1;
+  padding: 12px 11px 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg-elevated);
+  text-decoration: none;
+  transition: border-color 0.15s, transform 0.15s, background 0.15s;
+  overflow: hidden;
+}
+.about-product-tile:hover {
   border-color: var(--line-strong);
+  background: var(--bg);
   transform: translateY(-2px);
 }
-.about-product h3 {
-  margin: 0 0 6px;
-  font-size: 17px;
-  letter-spacing: -0.02em;
-}
-.about-product p {
-  margin: 0 0 10px;
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.5;
-}
-.about-product span {
+.about-product-tile-name {
   font-size: 13px;
   font-weight: 650;
+  color: var(--text);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.about-product-tile-arrow {
+  font-size: 15px;
   color: var(--focus);
+  align-self: flex-end;
+  line-height: 1;
 }
 .about-back {
   margin-top: 8px;

@@ -13,6 +13,7 @@ export function AboutEditor({ initial }: { initial: AboutProfile }) {
   });
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
+  const [uploadingProfile, setUploadingProfile] = useState(false);
 
   function update<K extends keyof AboutProfile>(key: K, value: AboutProfile[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -31,6 +32,17 @@ export function AboutEditor({ initial }: { initial: AboutProfile }) {
       ...f,
       products: [...f.products, { title: "", url: "", description: "" }]
     }));
+  }
+
+  async function uploadProfileImage(file: File) {
+    setUploadingProfile(true);
+    const fd = new FormData();
+    fd.append("file", file);
+    const r = await fetch("/api/upload", { method: "POST", body: fd });
+    const j = await r.json();
+    setUploadingProfile(false);
+    if (!r.ok) return alert(j.error || "Upload failed");
+    update("profile_image_url", j.url);
   }
 
   function removeProduct(i: number) {
@@ -113,6 +125,37 @@ export function AboutEditor({ initial }: { initial: AboutProfile }) {
       </label>
 
       <h3 className="editor-subhead">My products</h3>
+
+      <label className="upload">
+        Profile image — 16:9 (optional)
+        <input
+          type="file"
+          accept="image/*"
+          disabled={uploadingProfile}
+          onChange={(e) => e.target.files?.[0] && uploadProfileImage(e.target.files[0])}
+        />
+        {uploadingProfile && <span>Uploading…</span>}
+        {!uploadingProfile && form.profile_image_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={form.profile_image_url}
+            alt="Profile"
+            style={{ aspectRatio: "16/9", objectFit: "cover", borderRadius: 8, marginTop: 6 }}
+          />
+        ) : (
+          !uploadingProfile && <span>Hiển thị bên trên danh sách sản phẩm (tỉ lệ 16:9)</span>
+        )}
+        {form.profile_image_url && (
+          <button
+            type="button"
+            className="btn-ghost"
+            style={{ marginTop: 8, padding: "4px 10px", fontSize: 12 }}
+            onClick={() => update("profile_image_url", null)}
+          >
+            Remove image
+          </button>
+        )}
+      </label>
       {form.products.map((p, i) => (
         <div className="product-editor-row" key={i}>
           <label>

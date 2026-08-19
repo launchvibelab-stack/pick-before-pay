@@ -95,15 +95,26 @@ export default async function AboutPage() {
 
         <section className="about-section">
           <h2>My products</h2>
+          {profile.profile_image_url && (
+            <div className="about-profile-img-wrap">
+              <Image
+                src={profile.profile_image_url}
+                alt={profile.name}
+                width={1200}
+                height={675}
+                className="about-profile-img"
+                sizes="(max-width: 720px) 100vw, 720px"
+              />
+            </div>
+          )}
           {profile.products.length === 0 ? (
             <p className="muted-line">Products will appear here once added in the admin About editor.</p>
           ) : (
-            <div className="about-products">
+            <div className="about-products-grid">
               {profile.products.map((p) => (
-                <a key={p.url + p.title} href={p.url} className="about-product" target="_blank" rel="noopener noreferrer">
-                  <h3>{p.title}</h3>
-                  {p.description && <p>{p.description}</p>}
-                  <span>Visit →</span>
+                <a key={p.url + p.title} href={p.url} className="about-product-tile" target="_blank" rel="noopener noreferrer" title={p.description || p.title}>
+                  <span className="about-product-tile-name">{p.title}</span>
+                  <span className="about-product-tile-arrow" aria-hidden>↗</span>
                 </a>
               ))}
             </div>
