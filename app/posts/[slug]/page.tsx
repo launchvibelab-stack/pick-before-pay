@@ -2,6 +2,7 @@ import { Header } from "@/components/Header";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { SiteFooter } from "@/components/SiteFooter";
 import { TrackPageview } from "@/components/TrackPageview";
+import { ReadingProgress } from "@/components/ReadingProgress";
 import { StillDecidingWidget } from "@/components/StillDecidingWidget";
 import { VerdictBar } from "@/components/VerdictBar";
 import { YouTubeLite } from "@/components/YouTubeLite";
@@ -160,6 +161,12 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   return (
     <>
       <TrackPageview path={`/posts/${post.slug}`} postId={post.id} />
+      <ReadingProgress
+        score={score}
+        formattedScore={score != null ? formatEditorScore(score) : ""}
+        stars={score != null ? scoreStars(score) : ""}
+        productName={productName}
+      />
       <Header />
       <main className="container article-wrap">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }} />

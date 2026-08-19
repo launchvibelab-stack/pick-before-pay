@@ -1394,6 +1394,95 @@ footer,
   .verdict-bar-cta  { padding: 9px 14px; font-size: 13px; }
 }
 
+/* —— Reading progress bar + score reveal badge —— */
+.rp-bar-track {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 300;
+  background: transparent;
+  pointer-events: none;
+}
+.rp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2f6fed, #7eb3ff);
+  transition: width 0.1s linear;
+  border-radius: 0 2px 2px 0;
+}
+
+/* Score reveal badge */
+.rp-badge {
+  position: fixed;
+  top: 56px;
+  right: 20px;
+  z-index: 130;
+  background: var(--bg);
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  padding: 12px 16px;
+  box-shadow: 0 6px 32px rgba(0,0,0,0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 100px;
+  text-align: center;
+}
+.rp-badge--pop {
+  animation: rp-pop 0.4s cubic-bezier(0.34,1.56,0.64,1), rp-pulse 0.6s ease 0.5s 3;
+}
+.rp-badge--seen {
+  animation: rp-pop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes rp-pop {
+  from { transform: scale(0.7) translateY(-10px); opacity: 0; }
+  to   { transform: scale(1)   translateY(0);     opacity: 1; }
+}
+@keyframes rp-pulse {
+  0%, 100% { box-shadow: 0 6px 32px rgba(0,0,0,0.12); }
+  50%       { box-shadow: 0 6px 32px rgba(47,111,237,0.35); border-color: #9bb6f5; }
+}
+.rp-badge-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.rp-badge-stars {
+  font-size: 16px;
+  color: #f5a623;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+.rp-badge-score {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  line-height: 1;
+}
+.rp-badge-max {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+  margin-left: 1px;
+}
+.rp-badge-name {
+  font-size: 11px;
+  color: var(--muted);
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+@media (max-width: 600px) {
+  .rp-badge { top: auto; bottom: 72px; right: 12px; }
+}
+
 /* —— Inline CTA box (injected between sections) —— */
 .inline-cta-box {
   display: flex;
