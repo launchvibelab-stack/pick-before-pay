@@ -1,5 +1,8 @@
 import { getSupabaseAdmin } from "@/lib/supabase";
 
+export const BANNER_LABEL_VARIANTS = ["featured_launch", "partner_spotlight", "exclusive_readers"] as const;
+export type BannerLabelVariant = (typeof BANNER_LABEL_VARIANTS)[number];
+
 export type Banner = {
   enabled: boolean;
   product_name: string;
@@ -8,6 +11,7 @@ export type Banner = {
   expires_at: string | null;
   discount_code: string | null;
   cta_url: string | null;
+  label_variant: BannerLabelVariant;
 };
 
 export const defaultBanner = (): Banner => ({
@@ -17,8 +21,27 @@ export const defaultBanner = (): Banner => ({
   image_url: null,
   expires_at: null,
   discount_code: null,
-  cta_url: null
+  cta_url: null,
+  label_variant: "exclusive_readers"
 });
+
+function normalizeLabelVariant(v: unknown): BannerLabelVariant {
+  const s = String(v || "").trim().toLowerCase();
+  if (s === "featured_launch" || s === "partner_spotlight" || s === "exclusive_readers") return s;
+  return "exclusive_readers";
+}
+
+function isMissingDbColumn(error: { code?: string; message?: string } | null | undefined, column: string) {
+  if (!error) return false;
+  const msg = String(error.message || "");
+  if (!msg.includes(column)) return false;
+  return (
+    error.code === "42703" ||
+    error.code === "PGRST204" ||
+    /schema cache/i.test(msg) ||
+    /does not exist/i.test(msg)
+  );
+}
 
 function normalize(row: Record<string, unknown> | null | undefined): Banner {
   if (!row) return defaultBanner();
@@ -29,7 +52,8 @@ function normalize(row: Record<string, unknown> | null | undefined): Banner {
     image_url: row.image_url ? String(row.image_url) : null,
     expires_at: row.expires_at ? String(row.expires_at) : null,
     discount_code: row.discount_code ? String(row.discount_code) : null,
-    cta_url: row.cta_url ? String(row.cta_url) : null
+    cta_url: row.cta_url ? String(row.cta_url) : null,
+    label_variant: normalizeLabelVariant(row.label_variant)
   };
 }
 
@@ -55,12 +79,20 @@ export async function saveBanner(input: Banner): Promise<Banner> {
     image_url: input.image_url?.trim() || null,
     expires_at: input.expires_at || null,
     discount_code: input.discount_code?.trim() || null,
-    cta_url: input.cta_url?.trim() || null
+    cta_url: input.cta_url?.trim() || null,
+    label_variant: normalizeLabelVariant(input.label_variant)
   };
 
-  const { error } = await getSupabaseAdmin()
+  let { error } = await getSupabaseAdmin()
     .from("banners")
     .upsert({ id: 1, ...banner, updated_at: new Date().toISOString() });
+  if (isMissingDbColumn(error, "label_variant")) {
+    const { label_variant: _omit, ...legacy } = banner;
+    const retry = await getSupabaseAdmin()
+      .from("banners")
+      .upsert({ id: 1, ...legacy, updated_at: new Date().toISOString() });
+    error = retry.error;
+  }
 
   if (error) throw new Error(error.message);
   return banner;

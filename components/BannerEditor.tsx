@@ -1,6 +1,6 @@
 "use client";
 
-import type { Banner } from "@/lib/banner";
+import { BANNER_LABEL_VARIANTS, type Banner, type BannerLabelVariant } from "@/lib/banner";
 import { useState } from "react";
 
 type Props = { initial: Banner };
@@ -101,6 +101,25 @@ export function BannerEditor({ initial }: Props) {
         <small className="field-hint">
           Banner chỉ hiện khi bật và chưa hết giờ đếm ngược.
         </small>
+      </label>
+
+      <label>
+        Banner label
+        <select
+          value={form.label_variant}
+          onChange={(e) => update("label_variant", e.target.value as BannerLabelVariant)}
+        >
+          {BANNER_LABEL_VARIANTS.map((v) => (
+            <option key={v} value={v}>
+              {v === "featured_launch"
+                ? "Featured Launch"
+                : v === "partner_spotlight"
+                  ? "Partner Spotlight"
+                  : "Exclusive for PickBeforePay readers"}
+            </option>
+          ))}
+        </select>
+        <small className="field-hint">Hiển thị badge định vị ngay trên tên sản phẩm ở banner homepage.</small>
       </label>
 
       <label>

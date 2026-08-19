@@ -8,6 +8,7 @@ create table if not exists public.banners (
   expires_at timestamptz,
   discount_code text,
   cta_url text,
+  label_variant text not null default 'exclusive_readers',
   updated_at timestamptz not null default now()
 );
 
