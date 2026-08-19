@@ -75,6 +75,7 @@ export function PromoBanner({ banner }: { banner: Banner }) {
 
   const showCountdown = Boolean(banner.expires_at && timeLeft);
   const hasImage = Boolean(banner.image_url);
+  const ctaLabel = banner.discount_code ? "Get discount" : "Get exclusive bonus";
 
   return (
     <div className="promo-banner" role="region" aria-label="Special offer">
@@ -140,7 +141,7 @@ export function PromoBanner({ banner }: { banner: Banner }) {
                   rel="nofollow noopener"
                   target="_blank"
                 >
-                  Grab the deal →
+                  {banner.discount_code ? "Grab the deal →" : "Claim your bonus →"}
                 </a>
               )}
             </div>
@@ -156,7 +157,7 @@ export function PromoBanner({ banner }: { banner: Banner }) {
                 autoComplete="email"
               />
               <button type="submit" className="promo-cta-btn" disabled={status === "loading"}>
-                {status === "loading" ? "…" : "Get discount"}
+                {status === "loading" ? "…" : ctaLabel}
               </button>
               {status === "error" && (
                 <p className="promo-error">{errMsg}</p>
