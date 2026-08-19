@@ -2,6 +2,7 @@ import { Header } from "@/components/Header";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { SiteFooter } from "@/components/SiteFooter";
 import { TrackPageview } from "@/components/TrackPageview";
+import { StillDecidingWidget } from "@/components/StillDecidingWidget";
 import { VerdictBar } from "@/components/VerdictBar";
 import { YouTubeLite } from "@/components/YouTubeLite";
 import { extractFaqs } from "@/lib/content";
@@ -73,6 +74,15 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
       : null;
   const productName = (post.focus_keyword || post.title).trim();
   const youtube = parseYouTubeRef(post.youtube_url);
+
+  // Extract up to 3 short sentences from excerpt for StillDecidingWidget
+  const excerptReasons = post.excerpt
+    ? post.excerpt
+        .split(/(?<=[.!?])\s+/)
+        .map((s) => s.trim())
+        .filter((s) => s.length > 20 && s.length < 120)
+        .slice(0, 3)
+    : [];
 
   const articleLd = {
     "@context": "https://schema.org",
@@ -212,6 +222,12 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         formattedScore={score != null ? formatEditorScore(score) : ""}
         affiliateUrl={post.affiliate_url ?? null}
         postId={post.id}
+      />
+      <StillDecidingWidget
+        productName={productName}
+        affiliateUrl={post.affiliate_url ?? null}
+        postId={post.id}
+        reasons={excerptReasons}
       />
       <SiteFooter />
     </>
