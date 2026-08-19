@@ -1,7 +1,9 @@
 import { Header } from "@/components/Header";
+import { PromoBanner } from "@/components/PromoBanner";
 import { RecentReviews } from "@/components/RecentReviews";
 import { SiteFooter } from "@/components/SiteFooter";
 import { TrackPageview } from "@/components/TrackPageview";
+import { getBanner } from "@/lib/banner";
 import { getNiches } from "@/lib/niches";
 import { getPublishedPosts } from "@/lib/posts";
 import { siteUrl } from "@/lib/seo";
@@ -40,6 +42,7 @@ export default async function Home() {
   let posts: Post[] = [];
   let niches: Niche[] = [];
   let error = "";
+  const banner = await getBanner().catch(() => null);
   try {
     [posts, niches] = await Promise.all([getPublishedPosts(), getNiches()]);
   } catch {
@@ -50,6 +53,7 @@ export default async function Home() {
     <>
       <TrackPageview path="/" />
       <Header />
+      {banner && <PromoBanner banner={banner} />}
       <main>
         <section className="hero">
           <div className="container">
