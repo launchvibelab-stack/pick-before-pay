@@ -62,6 +62,20 @@ button, input, textarea, select { font: inherit; }
   flex: 1;
   min-width: 180px;
 }
+.promo-position-label {
+  margin: 0 0 5px;
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.16);
+  border: 1px solid rgba(255,255,255,0.22);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+}
 .promo-banner-name {
   margin: 0 0 2px;
   font-size: 15px;

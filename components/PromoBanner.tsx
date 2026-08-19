@@ -76,6 +76,7 @@ export function PromoBanner({ banner }: { banner: Banner }) {
   const showCountdown = Boolean(banner.expires_at && timeLeft);
   const hasImage = Boolean(banner.image_url);
   const ctaLabel = banner.discount_code ? "Get discount" : "Get exclusive bonus";
+  const positionLabel = "Exclusive for PickBeforePay readers";
 
   return (
     <div className="promo-banner" role="region" aria-label="Special offer">
@@ -94,6 +95,7 @@ export function PromoBanner({ banner }: { banner: Banner }) {
 
         {/* Center: text + countdown */}
         <div className="promo-banner-body">
+          <p className="promo-position-label">{positionLabel}</p>
           {banner.product_name && (
             <p className="promo-banner-name">
               <span className="promo-fire">🔥</span> {banner.product_name}
