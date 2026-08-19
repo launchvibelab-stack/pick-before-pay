@@ -2,6 +2,7 @@ import { Header } from "@/components/Header";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { SiteFooter } from "@/components/SiteFooter";
 import { TrackPageview } from "@/components/TrackPageview";
+import { VerdictBar } from "@/components/VerdictBar";
 import { YouTubeLite } from "@/components/YouTubeLite";
 import { extractFaqs } from "@/lib/content";
 import { getAllPublishedSlugs, getPostBySlug } from "@/lib/posts";
@@ -203,19 +204,15 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         <article>
           <MarkdownContent content={post.content} affiliateUrl={post.affiliate_url} postId={post.id} />
         </article>
-        {post.affiliate_url && (
-          <div className="sticky-cta">
-            <a
-              href={`/api/go/${post.id}`}
-              className="cta-btn cta-btn-lg"
-              rel="nofollow sponsored noopener"
-              target="_blank"
-            >
-              Get started - exclusive bonuses via our link
-            </a>
-          </div>
-        )}
       </main>
+      <VerdictBar
+        productName={productName}
+        score={score}
+        stars={score != null ? scoreStars(score) : ""}
+        formattedScore={score != null ? formatEditorScore(score) : ""}
+        affiliateUrl={post.affiliate_url ?? null}
+        postId={post.id}
+      />
       <SiteFooter />
     </>
   );

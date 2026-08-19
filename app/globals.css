@@ -1306,13 +1306,92 @@ footer,
   padding: 16px 24px;
   font-size: 16px;
 }
-.sticky-cta {
-  position: sticky;
-  bottom: 16px;
+/* —— Verdict bar —— */
+.verdict-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 120;
+  background: rgba(15, 15, 20, 0.96);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 12px 20px;
+  animation: verdict-slide-up 0.25s ease;
+}
+@keyframes verdict-slide-up {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.verdict-bar-inner {
+  max-width: 760px;
+  margin: 0 auto;
   display: flex;
-  justify-content: center;
-  margin: 36px 0 8px;
-  z-index: 20;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.verdict-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  flex: 1;
+}
+.verdict-bar-name {
+  font-size: 14px;
+  font-weight: 650;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+.verdict-bar-rating {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+.verdict-bar-stars {
+  color: #f5a623;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+.verdict-bar-score {
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+.verdict-bar-max {
+  font-size: 12px;
+  color: rgba(255,255,255,0.45);
+  margin-left: 1px;
+}
+.verdict-bar-cta {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  background: #2f6fed;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 650;
+  padding: 10px 20px;
+  border-radius: 10px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s, transform 0.1s;
+}
+.verdict-bar-cta:hover {
+  background: #1e5fd4;
+  transform: translateY(-1px);
+}
+@media (max-width: 480px) {
+  .verdict-bar-name { max-width: 130px; font-size: 13px; }
+  .verdict-bar-cta  { padding: 9px 14px; font-size: 13px; }
 }
 
 /* —— Admin —— */
