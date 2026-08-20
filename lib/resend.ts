@@ -14,7 +14,8 @@ export async function sendResendEmail(opts: {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   const fromEmail = process.env.RESEND_FROM_EMAIL?.trim();
   const fromName = (process.env.RESEND_FROM_NAME || "PickBeforePay").trim();
-  const replyTo = process.env.RESEND_REPLY_TO?.trim();
+  // Prefer env; fallback so replies land in inbox when domain mailbox is not set up.
+  const replyTo = (process.env.RESEND_REPLY_TO || "nhanscope@gmail.com").trim();
 
   if (!apiKey || !fromEmail) {
     return { ok: false, error: "Resend is not configured (API key / from email)." };
@@ -24,10 +25,10 @@ export async function sendResendEmail(opts: {
     from: `${fromName} <${fromEmail}>`,
     to: [opts.to],
     subject: opts.subject,
-    html: opts.html
+    html: opts.html,
+    reply_to: replyTo
   };
   if (opts.text) payload.text = opts.text;
-  if (replyTo) payload.reply_to = replyTo;
   if (opts.unsubscribeUrl) {
     payload.headers = {
       "List-Unsubscribe": `<${opts.unsubscribeUrl}>`,
