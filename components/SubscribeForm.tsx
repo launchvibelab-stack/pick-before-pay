@@ -1,5 +1,6 @@
 "use client";
 
+import { englishRequiredEmailProps } from "@/lib/formValidation";
 import { useState } from "react";
 
 export function SubscribeForm({ compact = false }: { compact?: boolean }) {
@@ -50,11 +51,11 @@ export function SubscribeForm({ compact = false }: { compact?: boolean }) {
         <input
           type="email"
           name="email"
-          required
           placeholder="you@email.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
+          {...englishRequiredEmailProps()}
         />
         <button className="primary-btn" type="submit" disabled={status === "loading"}>
           {status === "loading" ? "..." : "Get free Scorecard"}

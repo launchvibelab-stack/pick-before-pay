@@ -1,6 +1,7 @@
 "use client";
 
 import type { Banner } from "@/lib/banner";
+import { englishRequiredEmailProps } from "@/lib/formValidation";
 import { useEffect, useRef, useState } from "react";
 
 const SESSION_KEY = "exit_popup_seen";
@@ -150,12 +151,12 @@ export function ExitIntentPopup({ banner }: { banner: Banner }) {
           <form className="exit-form" onSubmit={handleSubmit}>
             <input
               type="email"
-              required
               placeholder="your@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={status === "loading"}
               autoComplete="email"
+              {...englishRequiredEmailProps()}
             />
             <button type="submit" className="exit-cta-btn" disabled={status === "loading"}>
               {status === "loading" ? "…" : ctaLabel}
