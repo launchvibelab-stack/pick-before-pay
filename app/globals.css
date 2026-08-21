@@ -114,18 +114,33 @@ button, input, textarea, select { font: inherit; }
   color: rgba(255,255,255,0.7);
   white-space: nowrap;
 }
+.promo-banner-cta {
+  flex-shrink: 0;
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
 .promo-review-link {
-  display: inline-block;
-  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0;
+  padding: 8px 12px;
   font-size: 12px;
-  font-weight: 600;
-  color: rgba(255,255,255,0.78);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  transition: color 0.15s;
+  font-weight: 650;
+  color: #fff;
+  text-decoration: none;
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.08);
+  transition: background 0.15s, border-color 0.15s;
 }
 .promo-review-link:hover {
   color: #fff;
+  background: rgba(255,255,255,0.16);
+  border-color: rgba(255,255,255,0.55);
 }
 .promo-unit {
   display: flex;
@@ -148,10 +163,6 @@ button, input, textarea, select { font: inherit; }
   color: rgba(255,255,255,0.6);
   font-weight: 600;
   text-transform: uppercase;
-}
-.promo-banner-cta {
-  flex-shrink: 0;
-  min-width: 240px;
 }
 .promo-form {
   display: flex;

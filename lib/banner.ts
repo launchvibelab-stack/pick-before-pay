@@ -92,7 +92,7 @@ export async function getBanner(): Promise<Banner> {
   }
 }
 
-export async function saveBanner(input: Banner): Promise<Banner> {
+export async function saveBanner(input: Banner): Promise<{ banner: Banner; warning?: string }> {
   const banner: Banner = {
     enabled: Boolean(input.enabled),
     product_name: String(input.product_name || "").trim(),
@@ -109,15 +109,31 @@ export async function saveBanner(input: Banner): Promise<Banner> {
   let payload: Record<string, unknown> = { id: 1, ...banner, updated_at: new Date().toISOString() };
   let { error } = await getSupabaseAdmin().from("banners").upsert(payload);
 
-  // Gracefully drop newer columns if migration not applied yet
-  for (const col of ["countdown_label", "review_url", "label_variant"] as const) {
-    if (!isMissingDbColumn(error, col)) break;
-    const { [col]: _omit, ...rest } = payload;
+  const optionalCols = ["countdown_label", "review_url", "label_variant"] as const;
+  const dropped: string[] = [];
+  while (error) {
+    const missing = optionalCols.find((col) => isMissingDbColumn(error, col) && col in payload);
+    if (!missing) break;
+    dropped.push(missing);
+    const { [missing]: _omit, ...rest } = payload;
     payload = rest;
     const retry = await getSupabaseAdmin().from("banners").upsert(payload);
     error = retry.error;
   }
 
   if (error) throw new Error(error.message);
-  return banner;
+
+  const saved: Banner = {
+    ...banner,
+    review_url: dropped.includes("review_url") ? null : banner.review_url,
+    countdown_label: dropped.includes("countdown_label") ? "ends_in" : banner.countdown_label,
+    label_variant: dropped.includes("label_variant") ? "exclusive_readers" : banner.label_variant
+  };
+
+  const warning =
+    dropped.length > 0
+      ? `Saved, but missing DB columns (${dropped.join(", ")}). Run supabase/migration_banner_review_countdown.sql then save again.`
+      : undefined;
+
+  return { banner: saved, warning };
 }

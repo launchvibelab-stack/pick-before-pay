@@ -87,9 +87,23 @@ export function BannerEditor({ initial }: Props) {
       setStatus("error");
       setMsg(j.error || "Save failed");
     } else {
-      setStatus("ok");
-      setMsg("Saved!");
-      setTimeout(() => setStatus("idle"), 2000);
+      setForm({
+        ...j,
+        // keep known fields if API echoes warning-only extras
+        enabled: Boolean(j.enabled),
+        product_name: String(j.product_name || ""),
+        description: String(j.description || ""),
+        image_url: j.image_url || null,
+        expires_at: j.expires_at || null,
+        discount_code: j.discount_code || null,
+        cta_url: j.cta_url || null,
+        review_url: j.review_url || null,
+        label_variant: j.label_variant || "exclusive_readers",
+        countdown_label: j.countdown_label || "ends_in"
+      });
+      setStatus(j.warning ? "error" : "ok");
+      setMsg(j.warning || "Saved!");
+      if (!j.warning) setTimeout(() => setStatus("idle"), 2000);
     }
   }
 
