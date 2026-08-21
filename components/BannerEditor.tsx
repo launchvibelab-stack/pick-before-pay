@@ -1,6 +1,12 @@
 "use client";
 
-import { BANNER_LABEL_VARIANTS, type Banner, type BannerLabelVariant } from "@/lib/banner";
+import {
+  BANNER_COUNTDOWN_LABELS,
+  BANNER_LABEL_VARIANTS,
+  type Banner,
+  type BannerCountdownLabel,
+  type BannerLabelVariant
+} from "@/lib/banner";
 import { useState } from "react";
 
 type Props = { initial: Banner };
@@ -153,6 +159,34 @@ export function BannerEditor({ initial }: Props) {
           placeholder="https://warriorplus.com/..."
         />
         <small className="field-hint">Link khi bấm nút CTA. Dùng affiliate link của bạn.</small>
+      </label>
+
+      <label>
+        Review article URL (optional)
+        <input
+          type="url"
+          value={form.review_url || ""}
+          onChange={(e) => update("review_url", e.target.value || null)}
+          placeholder="https://pickbeforepay.com/posts/..."
+        />
+        <small className="field-hint">
+          Hiện nút &ldquo;View full review&rdquo;. Để trống thì không hiện — dành cho người chưa nhập email.
+        </small>
+      </label>
+
+      <label>
+        Countdown label
+        <select
+          value={form.countdown_label}
+          onChange={(e) => update("countdown_label", e.target.value as BannerCountdownLabel)}
+        >
+          {BANNER_COUNTDOWN_LABELS.map((v) => (
+            <option key={v} value={v}>
+              {v === "launches_in" ? "Launches in" : v === "offer_ends" ? "Offer ends in" : "Ends in"}
+            </option>
+          ))}
+        </select>
+        <small className="field-hint">Chữ hiển thị trước đồng hồ đếm ngược.</small>
       </label>
 
       <div style={{ marginBottom: 16 }}>

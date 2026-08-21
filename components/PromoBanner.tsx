@@ -1,6 +1,6 @@
 "use client";
 
-import type { Banner } from "@/lib/banner";
+import { countdownLabelText, type Banner } from "@/lib/banner";
 import { useEffect, useRef, useState } from "react";
 
 type TimeLeft = { days: number; hours: number; minutes: number; seconds: number };
@@ -111,21 +111,24 @@ export function PromoBanner({ banner }: { banner: Banner }) {
           )}
 
           {showCountdown && timeLeft && (
-            <div className="promo-countdown" aria-label="Time remaining">
-              {timeLeft.days > 0 && (
+            <div className="promo-countdown-row">
+              <span className="promo-countdown-label">{countdownLabelText(banner.countdown_label)}</span>
+              <div className="promo-countdown" aria-label={countdownLabelText(banner.countdown_label)}>
+                {timeLeft.days > 0 && (
+                  <span className="promo-unit">
+                    <b>{pad(timeLeft.days)}</b><small>d</small>
+                  </span>
+                )}
                 <span className="promo-unit">
-                  <b>{pad(timeLeft.days)}</b><small>d</small>
+                  <b>{pad(timeLeft.hours)}</b><small>h</small>
                 </span>
-              )}
-              <span className="promo-unit">
-                <b>{pad(timeLeft.hours)}</b><small>h</small>
-              </span>
-              <span className="promo-unit">
-                <b>{pad(timeLeft.minutes)}</b><small>m</small>
-              </span>
-              <span className="promo-unit">
-                <b>{pad(timeLeft.seconds)}</b><small>s</small>
-              </span>
+                <span className="promo-unit">
+                  <b>{pad(timeLeft.minutes)}</b><small>m</small>
+                </span>
+                <span className="promo-unit">
+                  <b>{pad(timeLeft.seconds)}</b><small>s</small>
+                </span>
+              </div>
             </div>
           )}
         </div>
@@ -170,6 +173,11 @@ export function PromoBanner({ banner }: { banner: Banner }) {
                 <p className="promo-error">{errMsg}</p>
               )}
             </form>
+          )}
+          {banner.review_url && (
+            <a href={banner.review_url} className="promo-review-link">
+              View full review →
+            </a>
           )}
         </div>
       </div>

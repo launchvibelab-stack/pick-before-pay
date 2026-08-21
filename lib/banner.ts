@@ -3,6 +3,9 @@ import { getSupabaseAdmin } from "@/lib/supabase";
 export const BANNER_LABEL_VARIANTS = ["featured_launch", "partner_spotlight", "exclusive_readers"] as const;
 export type BannerLabelVariant = (typeof BANNER_LABEL_VARIANTS)[number];
 
+export const BANNER_COUNTDOWN_LABELS = ["ends_in", "launches_in", "offer_ends"] as const;
+export type BannerCountdownLabel = (typeof BANNER_COUNTDOWN_LABELS)[number];
+
 export type Banner = {
   enabled: boolean;
   product_name: string;
@@ -11,7 +14,9 @@ export type Banner = {
   expires_at: string | null;
   discount_code: string | null;
   cta_url: string | null;
+  review_url: string | null;
   label_variant: BannerLabelVariant;
+  countdown_label: BannerCountdownLabel;
 };
 
 export const defaultBanner = (): Banner => ({
@@ -22,13 +27,27 @@ export const defaultBanner = (): Banner => ({
   expires_at: null,
   discount_code: null,
   cta_url: null,
-  label_variant: "exclusive_readers"
+  review_url: null,
+  label_variant: "exclusive_readers",
+  countdown_label: "ends_in"
 });
 
 function normalizeLabelVariant(v: unknown): BannerLabelVariant {
   const s = String(v || "").trim().toLowerCase();
   if (s === "featured_launch" || s === "partner_spotlight" || s === "exclusive_readers") return s;
   return "exclusive_readers";
+}
+
+function normalizeCountdownLabel(v: unknown): BannerCountdownLabel {
+  const s = String(v || "").trim().toLowerCase();
+  if (s === "ends_in" || s === "launches_in" || s === "offer_ends") return s;
+  return "ends_in";
+}
+
+export function countdownLabelText(v: BannerCountdownLabel | null | undefined): string {
+  if (v === "launches_in") return "Launches in";
+  if (v === "offer_ends") return "Offer ends in";
+  return "Ends in";
 }
 
 function isMissingDbColumn(error: { code?: string; message?: string } | null | undefined, column: string) {
@@ -53,7 +72,9 @@ function normalize(row: Record<string, unknown> | null | undefined): Banner {
     expires_at: row.expires_at ? String(row.expires_at) : null,
     discount_code: row.discount_code ? String(row.discount_code) : null,
     cta_url: row.cta_url ? String(row.cta_url) : null,
-    label_variant: normalizeLabelVariant(row.label_variant)
+    review_url: row.review_url ? String(row.review_url) : null,
+    label_variant: normalizeLabelVariant(row.label_variant),
+    countdown_label: normalizeCountdownLabel(row.countdown_label)
   };
 }
 
@@ -80,17 +101,20 @@ export async function saveBanner(input: Banner): Promise<Banner> {
     expires_at: input.expires_at || null,
     discount_code: input.discount_code?.trim() || null,
     cta_url: input.cta_url?.trim() || null,
-    label_variant: normalizeLabelVariant(input.label_variant)
+    review_url: input.review_url?.trim() || null,
+    label_variant: normalizeLabelVariant(input.label_variant),
+    countdown_label: normalizeCountdownLabel(input.countdown_label)
   };
 
-  let { error } = await getSupabaseAdmin()
-    .from("banners")
-    .upsert({ id: 1, ...banner, updated_at: new Date().toISOString() });
-  if (isMissingDbColumn(error, "label_variant")) {
-    const { label_variant: _omit, ...legacy } = banner;
-    const retry = await getSupabaseAdmin()
-      .from("banners")
-      .upsert({ id: 1, ...legacy, updated_at: new Date().toISOString() });
+  let payload: Record<string, unknown> = { id: 1, ...banner, updated_at: new Date().toISOString() };
+  let { error } = await getSupabaseAdmin().from("banners").upsert(payload);
+
+  // Gracefully drop newer columns if migration not applied yet
+  for (const col of ["countdown_label", "review_url", "label_variant"] as const) {
+    if (!isMissingDbColumn(error, col)) break;
+    const { [col]: _omit, ...rest } = payload;
+    payload = rest;
+    const retry = await getSupabaseAdmin().from("banners").upsert(payload);
     error = retry.error;
   }
 
