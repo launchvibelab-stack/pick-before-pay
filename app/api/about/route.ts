@@ -1,5 +1,6 @@
 import { isAdmin } from "@/lib/auth";
 import { getAboutProfile, saveAboutProfile, type AboutProfile } from "@/lib/about";
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -12,6 +13,7 @@ export async function PUT(req: Request) {
   const body = (await req.json()) as AboutProfile;
   try {
     const saved = await saveAboutProfile(body);
+    revalidatePath("/about");
     return NextResponse.json(saved);
   } catch (err) {
     return NextResponse.json(
