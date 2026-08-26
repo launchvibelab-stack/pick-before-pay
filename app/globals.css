@@ -883,6 +883,8 @@ footer,
   object-fit: cover;
   border: 1px solid var(--line);
   flex-shrink: 0;
+  overflow: hidden;
+  background: var(--bg-elevated);
 }
 .about-avatar-fallback {
   display: grid;

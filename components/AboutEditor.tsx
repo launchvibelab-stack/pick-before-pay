@@ -14,6 +14,7 @@ export function AboutEditor({ initial }: { initial: AboutProfile }) {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
   const [uploadingProfile, setUploadingProfile] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   function update<K extends keyof AboutProfile>(key: K, value: AboutProfile[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -32,6 +33,17 @@ export function AboutEditor({ initial }: { initial: AboutProfile }) {
       ...f,
       products: [...f.products, { title: "", url: "", description: "" }]
     }));
+  }
+
+  async function uploadAvatar(file: File) {
+    setUploadingAvatar(true);
+    const fd = new FormData();
+    fd.append("file", file);
+    const r = await fetch("/api/upload", { method: "POST", body: fd });
+    const j = await r.json();
+    setUploadingAvatar(false);
+    if (!r.ok) return alert(j.error || "Upload failed");
+    update("avatar_url", j.url);
   }
 
   async function uploadProfileImage(file: File) {
@@ -93,13 +105,46 @@ export function AboutEditor({ initial }: { initial: AboutProfile }) {
         Bio
         <textarea rows={6} value={form.bio} onChange={(e) => update("bio", e.target.value)} />
       </label>
+      <label className="upload">
+        Avatar photo (circle on About page)
+        <input
+          type="file"
+          accept="image/*"
+          disabled={uploadingAvatar}
+          onChange={(e) => e.target.files?.[0] && uploadAvatar(e.target.files[0])}
+        />
+        {uploadingAvatar && <span>Uploading…</span>}
+        {!uploadingAvatar && form.avatar_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={form.avatar_url}
+            alt="Avatar preview"
+            style={{ width: 96, height: 96, objectFit: "cover", borderRadius: "50%", marginTop: 6 }}
+          />
+        ) : (
+          !uploadingAvatar && <span>Upload a square photo (best: face close-up)</span>
+        )}
+        {form.avatar_url && (
+          <button
+            type="button"
+            className="btn-ghost"
+            style={{ marginTop: 8, padding: "4px 10px", fontSize: 12 }}
+            onClick={() => update("avatar_url", null)}
+          >
+            Remove avatar
+          </button>
+        )}
+      </label>
       <label>
-        Avatar image URL
+        Or paste avatar image URL
         <input
           value={form.avatar_url || ""}
           onChange={(e) => update("avatar_url", e.target.value || null)}
-          placeholder="https://..."
+          placeholder="https://… (direct image link ending in .jpg/.png)"
         />
+        <small className="field-hint">
+          Prefer upload above. Pasted links from Google Drive / Facebook often fail to display.
+        </small>
       </label>
 
       <h3 className="editor-subhead">Social links</h3>

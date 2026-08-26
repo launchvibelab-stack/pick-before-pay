@@ -1,3 +1,4 @@
+import { AboutAvatar } from "@/components/AboutAvatar";
 import { Header } from "@/components/Header";
 import { ProfileImageLightbox } from "@/components/ProfileImageLightbox";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -5,7 +6,6 @@ import { TrackPageview } from "@/components/TrackPageview";
 import { getAboutProfile } from "@/lib/about";
 import { siteUrl } from "@/lib/seo";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 
 export const revalidate = 300;
@@ -53,19 +53,7 @@ export default async function AboutPage() {
       <Header />
       <main className="container about-page">
         <div className="about-hero">
-          {profile.avatar_url ? (
-            <Image
-              src={profile.avatar_url}
-              alt={profile.name}
-              width={112}
-              height={112}
-              className="about-avatar"
-            />
-          ) : (
-            <div className="about-avatar about-avatar-fallback" aria-hidden>
-              {profile.name.slice(0, 1).toUpperCase()}
-            </div>
-          )}
+          <AboutAvatar src={profile.avatar_url} name={profile.name} />
           <div>
             <span className="eyebrow">About</span>
             <h1>{profile.name}</h1>
