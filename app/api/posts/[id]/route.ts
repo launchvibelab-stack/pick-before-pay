@@ -7,6 +7,7 @@ import { revalidatePublicSurfaces } from "@/lib/revalidate-public";
 import { applySeoPipeline, syncNicheInternalLinks } from "@/lib/seo";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import type { IndexStatus } from "@/lib/types";
+import { normalizeSafeHttpsUrl } from "@/lib/urls";
 import { normalizeYoutubeUrl } from "@/lib/youtube";
 import { NextResponse } from "next/server";
 
@@ -27,8 +28,15 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const focus_keyword = String(b.focus_keyword || "").trim();
   const content = String(b.content || "").trim();
   const niche_id = b.niche_id ? String(b.niche_id) : null;
-  const affiliate_url = b.affiliate_url ? String(b.affiliate_url).trim() : null;
-  const cover_url = b.cover_url !== undefined ? b.cover_url || null : existing.cover_url;
+  const aff = normalizeSafeHttpsUrl(b.affiliate_url, "Affiliate URL");
+  if (aff.error) return NextResponse.json({ error: aff.error }, { status: 400 });
+  const affiliate_url = aff.url;
+  const cover =
+    b.cover_url !== undefined
+      ? normalizeSafeHttpsUrl(b.cover_url, "Cover image URL")
+      : { url: existing.cover_url as string | null };
+  if ("error" in cover && cover.error) return NextResponse.json({ error: cover.error }, { status: 400 });
+  const cover_url = cover.url;
   const editor_score = parseEditorScore(b.editor_score);
   const youtube = normalizeYoutubeUrl(b.youtube_url);
   if (youtube.error) return NextResponse.json({ error: youtube.error }, { status: 400 });

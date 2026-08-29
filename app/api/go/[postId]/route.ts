@@ -1,5 +1,6 @@
 import { bumpAffiliateClick } from "@/lib/analytics";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { isSafeHttpsUrl } from "@/lib/urls";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request, { params }: { params: Promise<{ postId: string }> }) {
@@ -10,7 +11,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ postId: 
     .eq("id", postId)
     .maybeSingle();
 
-  if (!post?.affiliate_url || !post.published) {
+  if (!post?.affiliate_url || !post.published || !isSafeHttpsUrl(post.affiliate_url)) {
     return NextResponse.redirect(new URL("/", req.url), 302);
   }
 

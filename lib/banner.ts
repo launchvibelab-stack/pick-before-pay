@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { normalizeSafeHttpsUrl } from "@/lib/urls";
 
 export const BANNER_LABEL_VARIANTS = ["featured_launch", "partner_spotlight", "exclusive_readers"] as const;
 export type BannerLabelVariant = (typeof BANNER_LABEL_VARIANTS)[number];
@@ -93,15 +94,22 @@ export async function getBanner(): Promise<Banner> {
 }
 
 export async function saveBanner(input: Banner): Promise<{ banner: Banner; warning?: string }> {
+  const image = normalizeSafeHttpsUrl(input.image_url, "Banner image URL");
+  if (image.error) throw new Error(image.error);
+  const cta = normalizeSafeHttpsUrl(input.cta_url, "CTA URL");
+  if (cta.error) throw new Error(cta.error);
+  const review = normalizeSafeHttpsUrl(input.review_url, "Review article URL", { allowRelative: true });
+  if (review.error) throw new Error(review.error);
+
   const banner: Banner = {
     enabled: Boolean(input.enabled),
     product_name: String(input.product_name || "").trim(),
     description: String(input.description || "").trim(),
-    image_url: input.image_url?.trim() || null,
+    image_url: image.url,
     expires_at: input.expires_at || null,
     discount_code: input.discount_code?.trim() || null,
-    cta_url: input.cta_url?.trim() || null,
-    review_url: input.review_url?.trim() || null,
+    cta_url: cta.url,
+    review_url: review.url,
     label_variant: normalizeLabelVariant(input.label_variant),
     countdown_label: normalizeCountdownLabel(input.countdown_label)
   };
