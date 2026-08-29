@@ -11,7 +11,6 @@ export default function Login() {
         <button className="primary-btn" type="submit">
           Log in
         </button>
-        <small>Password is set via the ADMIN_PASSWORD environment variable.</small>
       </form>
     </main>
   );
