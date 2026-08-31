@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { SubscribeForm } from "@/components/SubscribeForm";
 
 export function SiteFooter() {
@@ -17,6 +18,13 @@ export function SiteFooter() {
           <SubscribeForm compact />
         </div>
 
+        <nav className="footer-nav" aria-label="Site">
+          <Link href="/about">About</Link>
+          <Link href="/contact">Contact</Link>
+          <Link href="/privacy">Privacy</Link>
+          <Link href="/terms">Terms</Link>
+        </nav>
+
         <p className="footer-copy">
           © {year} PickBeforePay · pickbeforepay.com
         </p>
@@ -27,21 +35,10 @@ export function SiteFooter() {
             change our review process or editorial opinions.
           </p>
           <p>
-            <strong>Disclaimer.</strong> Content on this site is for general information and educational
-            purposes only. It is not financial, investment, legal, or professional advice. Product
-            details, pricing, features, and offers can change without notice. Always verify information
-            on the vendor’s official page before buying.
-          </p>
-          <p>
-            <strong>No guarantees.</strong> Results mentioned in reviews or marketing materials are not
-            typical and are not guaranteed. Your outcomes depend on your skills, effort, market
-            conditions, and other factors outside our control. We are not responsible for third-party
-            products, services, websites, or any losses arising from decisions you make based on our
-            content.
-          </p>
-          <p>
-            By using this website, you agree that PickBeforePay and its operators are not liable for
-            any damages related to the use of this site or products reviewed here.
+            <strong>Disclaimer.</strong> Content is for general information only, not professional advice.
+            Product details and offers can change. See our{" "}
+            <Link href="/terms">Terms of Use</Link> and{" "}
+            <Link href="/privacy">Privacy Policy</Link> for full details.
           </p>
         </div>
       </div>
