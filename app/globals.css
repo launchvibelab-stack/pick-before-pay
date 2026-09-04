@@ -949,12 +949,8 @@ footer,
   display: inline-block;
   font-size: 18px;
   font-weight: 650;
-  color: var(--focus);
-  text-decoration: none;
-}
-.contact-email:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  color: var(--text);
+  user-select: all;
 }
 .footer-disclaimer a {
   color: var(--focus);

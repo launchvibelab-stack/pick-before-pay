@@ -27,9 +27,8 @@ export default function ContactPage() {
           The fastest way to reach us:
         </p>
         <p>
-          <a href={`mailto:${CONTACT_EMAIL}`} className="contact-email">
-            {CONTACT_EMAIL}
-          </a>
+          {/* Plain text on purpose: Cloudflare Email Obfuscation rewrites mailto: to a 404 /cdn-cgi link */}
+          <span className="contact-email">{CONTACT_EMAIL}</span>
         </p>
         <p className="muted-line">
           We usually reply within 2–3 business days.
