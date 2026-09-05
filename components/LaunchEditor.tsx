@@ -89,6 +89,7 @@ export function LaunchEditor({ initial }: Props) {
         enabled: Boolean(j.enabled),
         product_name: String(j.product_name || ""),
         description: String(j.description || ""),
+        body_md: String(j.body_md || ""),
         image_url: j.image_url || null,
         expires_at: j.expires_at || null,
         discount_code: j.discount_code || null,
@@ -149,14 +150,29 @@ export function LaunchEditor({ initial }: Props) {
       </label>
 
       <label>
-        Short description
+        Short hook (hero)
         <textarea
-          rows={3}
+          rows={2}
           value={form.description}
           onChange={(e) => update("description", e.target.value)}
-          placeholder="Why they should join / what they get"
-          maxLength={280}
+          placeholder="1–2 sentences under the title — what they get if they join now"
+          maxLength={220}
         />
+        <small className="field-hint">Hiện ngay dưới tên sản phẩm, trên form email.</small>
+      </label>
+
+      <label>
+        Long description (prelaunch body)
+        <textarea
+          rows={14}
+          value={form.body_md}
+          onChange={(e) => update("body_md", e.target.value)}
+          placeholder={`## Why this matters\n\nPain point for cold visitors…\n\n## What's included\n\n- Benefit one\n- Benefit two\n- Benefit three\n\n## Who it's for\n\n…`}
+          className="launch-body-editor"
+        />
+        <small className="field-hint">
+          Markdown được hỗ trợ (## heading, list, bold). Dùng để thuyết phục người lạ — hiện dưới hero.
+        </small>
       </label>
 
       <label>

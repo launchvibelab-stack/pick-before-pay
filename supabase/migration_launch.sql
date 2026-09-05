@@ -4,6 +4,7 @@ create table if not exists public.launches (
   enabled boolean not null default false,
   product_name text not null default '',
   description text not null default '',
+  body_md text not null default '',
   image_url text,
   expires_at timestamptz,
   discount_code text,

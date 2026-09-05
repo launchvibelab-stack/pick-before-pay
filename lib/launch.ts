@@ -15,7 +15,10 @@ export type { BannerCountdownLabel, BannerLabelVariant };
 export type Launch = {
   enabled: boolean;
   product_name: string;
+  /** Short hero hook (1–2 sentences). */
   description: string;
+  /** Long-form prelaunch copy (markdown). */
+  body_md: string;
   image_url: string | null;
   expires_at: string | null;
   discount_code: string | null;
@@ -29,6 +32,7 @@ export const defaultLaunch = (): Launch => ({
   enabled: false,
   product_name: "",
   description: "",
+  body_md: "",
   image_url: null,
   expires_at: null,
   discount_code: null,
@@ -56,6 +60,7 @@ function normalize(row: Record<string, unknown> | null | undefined): Launch {
     enabled: Boolean(row.enabled),
     product_name: String(row.product_name || ""),
     description: String(row.description || ""),
+    body_md: String(row.body_md || ""),
     image_url: row.image_url ? String(row.image_url) : null,
     expires_at: row.expires_at ? String(row.expires_at) : null,
     discount_code: row.discount_code ? String(row.discount_code) : null,
@@ -92,6 +97,7 @@ export async function saveLaunch(input: Launch): Promise<Launch> {
     enabled: Boolean(input.enabled),
     product_name: String(input.product_name || "").trim(),
     description: String(input.description || "").trim(),
+    body_md: String(input.body_md || "").trim(),
     image_url: image.url,
     expires_at: input.expires_at || null,
     discount_code: input.discount_code?.trim() || null,
@@ -108,6 +114,9 @@ export async function saveLaunch(input: Launch): Promise<Launch> {
   if (error) {
     if (/relation .*launches.* does not exist|Could not find the table|schema cache/i.test(error.message)) {
       throw new Error("Launch table missing. Run supabase/migration_launch.sql in the Supabase SQL editor.");
+    }
+    if (/body_md|column .* does not exist/i.test(error.message)) {
+      throw new Error("Launch body column missing. Run supabase/migration_launch_body.sql in the Supabase SQL editor.");
     }
     throw new Error(error.message);
   }
