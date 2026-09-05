@@ -18,11 +18,8 @@ export default async function AdminBannerPage() {
         </div>
       </div>
       <p className="field-hint" style={{ marginBottom: 20, maxWidth: 640 }}>
-        Homepage banner = nút affiliate thẳng (không form email). Thu email + mã giảm giá nằm ở trang{" "}
-        <a href="/launch" target="_blank" rel="noopener noreferrer">
-          /launch
-        </a>{" "}
-        (dùng chung cấu hình này). Cần CTA URL để banner hiện trên trang chủ.
+        Banner trang chủ: ảnh + text + countdown + nút affiliate. Thu email nằm ở{" "}
+        <a href="/admin/launch">Launch page</a>.
       </p>
       <BannerEditor initial={banner} />
     </main>

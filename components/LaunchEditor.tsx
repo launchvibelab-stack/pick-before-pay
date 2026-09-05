@@ -3,13 +3,13 @@
 import {
   BANNER_COUNTDOWN_LABELS,
   BANNER_LABEL_VARIANTS,
-  type Banner,
   type BannerCountdownLabel,
-  type BannerLabelVariant
-} from "@/lib/banner";
+  type BannerLabelVariant,
+  type Launch
+} from "@/lib/launch";
 import { useState } from "react";
 
-type Props = { initial: Banner };
+type Props = { initial: Launch };
 
 function isoToLocal(iso: string | null): { date: string; hour: string; minute: string } {
   const def = { date: "", hour: "23", minute: "59" };
@@ -42,8 +42,8 @@ function displayIso(iso: string | null): string {
   return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()} — ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export function BannerEditor({ initial }: Props) {
-  const [form, setForm] = useState<Banner>(initial);
+export function LaunchEditor({ initial }: Props) {
+  const [form, setForm] = useState<Launch>(initial);
   const [status, setStatus] = useState<"idle" | "saving" | "ok" | "error">("idle");
   const [msg, setMsg] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -57,7 +57,7 @@ export function BannerEditor({ initial }: Props) {
     update("expires_at", localToIso(d, h, mi));
   }
 
-  function update<K extends keyof Banner>(key: K, value: Banner[K]) {
+  function update<K extends keyof Launch>(key: K, value: Launch[K]) {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
@@ -75,7 +75,7 @@ export function BannerEditor({ initial }: Props) {
   async function save() {
     setStatus("saving");
     setMsg("");
-    const r = await fetch("/api/banner", {
+    const r = await fetch("/api/launch", {
       method: "PUT",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(form)
@@ -97,9 +97,9 @@ export function BannerEditor({ initial }: Props) {
         label_variant: j.label_variant || "exclusive_readers",
         countdown_label: j.countdown_label || "ends_in"
       });
-      setStatus(j.warning ? "error" : "ok");
-      setMsg(j.warning || "Saved!");
-      if (!j.warning) setTimeout(() => setStatus("idle"), 2000);
+      setStatus("ok");
+      setMsg("Saved!");
+      setTimeout(() => setStatus("idle"), 2000);
     }
   }
 
@@ -107,18 +107,20 @@ export function BannerEditor({ initial }: Props) {
     <div className="editor">
       <label>
         <span className="banner-toggle-row">
-          Enable homepage banner
+          Enable launch page
           <input
             type="checkbox"
             checked={form.enabled}
             onChange={(e) => update("enabled", e.target.checked)}
           />
         </span>
-        <small className="field-hint">Banner chỉ hiện khi bật, còn hạn, và đã có CTA URL.</small>
+        <small className="field-hint">
+          Trang <code>/launch</code> hiện offer khi bật và chưa hết giờ. Dùng để ads / share thu email.
+        </small>
       </label>
 
       <label>
-        Banner label
+        Offer label
         <select
           value={form.label_variant}
           onChange={(e) => update("label_variant", e.target.value as BannerLabelVariant)}
@@ -149,23 +151,46 @@ export function BannerEditor({ initial }: Props) {
       <label>
         Short description
         <textarea
-          rows={2}
+          rows={3}
           value={form.description}
           onChange={(e) => update("description", e.target.value)}
-          placeholder="One short line works best on the banner"
-          maxLength={200}
+          placeholder="Why they should join / what they get"
+          maxLength={280}
         />
       </label>
 
       <label>
-        CTA URL (affiliate) *
+        CTA URL after signup (affiliate)
         <input
           type="url"
           value={form.cta_url || ""}
           onChange={(e) => update("cta_url", e.target.value || null)}
           placeholder="https://warriorplus.com/..."
         />
-        <small className="field-hint">Nút lớn trên banner homepage. Không có URL thì banner không hiện.</small>
+        <small className="field-hint">Hiện sau khi nhập email (Grab the deal / Claim bonus).</small>
+      </label>
+
+      <label>
+        Review article URL (optional)
+        <input
+          type="url"
+          value={form.review_url || ""}
+          onChange={(e) => update("review_url", e.target.value || null)}
+          placeholder="https://pickbeforepay.com/posts/..."
+        />
+        <small className="field-hint">Link “Prefer to read the full review first” trên /launch.</small>
+      </label>
+
+      <label>
+        Discount code (optional)
+        <input
+          type="text"
+          value={form.discount_code || ""}
+          onChange={(e) => update("discount_code", e.target.value || null)}
+          placeholder="e.g. EARLY30"
+          maxLength={60}
+        />
+        <small className="field-hint">Hiện sau khi submit email. Để trống nếu chỉ tặng bonus.</small>
       </label>
 
       <label>
@@ -231,7 +256,7 @@ export function BannerEditor({ initial }: Props) {
             ✓ <b>{displayIso(form.expires_at)}</b> (giờ máy bạn)
           </small>
         )}
-        <small className="field-hint">Để trống ngày nếu không dùng countdown. Banner tự ẩn khi hết giờ.</small>
+        <small className="field-hint">Hết giờ thì /launch hiện “This offer has ended”.</small>
       </div>
 
       <label className="upload">
@@ -245,9 +270,9 @@ export function BannerEditor({ initial }: Props) {
         {uploading && <span>Uploading…</span>}
         {!uploading && form.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={form.image_url} alt="Banner product" />
+          <img src={form.image_url} alt="Launch product" />
         ) : (
-          !uploading && <span>Square product image works best (~120px on banner)</span>
+          !uploading && <span>Square image recommended</span>
         )}
         {form.image_url && (
           <button
@@ -263,7 +288,7 @@ export function BannerEditor({ initial }: Props) {
 
       <div className="editor-actions">
         <button type="button" className="primary-btn" disabled={status === "saving"} onClick={save}>
-          {status === "saving" ? "Saving…" : "Save banner"}
+          {status === "saving" ? "Saving…" : "Save launch page"}
         </button>
         {msg && <p className={`subscribe-msg ${status === "ok" ? "is-ok" : "is-error"}`}>{msg}</p>}
       </div>

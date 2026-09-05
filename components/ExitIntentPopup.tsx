@@ -1,23 +1,22 @@
 "use client";
 
-import type { Banner } from "@/lib/banner";
+import type { Launch } from "@/lib/launch";
 import { englishRequiredEmailProps } from "@/lib/formValidation";
 import { useEffect, useRef, useState } from "react";
 
 const SESSION_KEY = "exit_popup_seen";
 
-export function ExitIntentPopup({ banner }: { banner: Banner }) {
+export function ExitIntentPopup({ offer }: { offer: Launch }) {
   const [visible, setVisible] = useState(false);
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "ok" | "error">("idle");
   const [errMsg, setErrMsg] = useState("");
   const firedRef = useRef(false);
 
-  // Check if banner is active & not expired
   const isActive =
-    banner.enabled &&
-    banner.product_name &&
-    (!banner.expires_at || new Date(banner.expires_at).getTime() > Date.now());
+    offer.enabled &&
+    offer.product_name &&
+    (!offer.expires_at || new Date(offer.expires_at).getTime() > Date.now());
 
   useEffect(() => {
     if (!isActive) return;
@@ -61,7 +60,7 @@ export function ExitIntentPopup({ banner }: { banner: Banner }) {
 
   if (!visible) return null;
 
-  const hasDiscount = Boolean(banner.discount_code);
+  const hasDiscount = Boolean(offer.discount_code);
   const ctaLabel = hasDiscount ? "Get my discount" : "Get exclusive bonus";
 
   async function handleSubmit(e: React.FormEvent) {
@@ -105,11 +104,11 @@ export function ExitIntentPopup({ banner }: { banner: Banner }) {
         <p className="exit-eyebrow">Wait! Before you go…</p>
 
         {/* Product image */}
-        {banner.image_url && (
+        {offer.image_url && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={banner.image_url}
-            alt={banner.product_name}
+            src={offer.image_url}
+            alt={offer.product_name}
             className="exit-product-img"
             loading="eager"
             decoding="async"
@@ -118,26 +117,26 @@ export function ExitIntentPopup({ banner }: { banner: Banner }) {
 
         <h2 className="exit-title">
           {hasDiscount
-            ? `Get an exclusive discount on ${banner.product_name}`
-            : `Get your exclusive bonus for ${banner.product_name}`}
+            ? `Get an exclusive discount on ${offer.product_name}`
+            : `Get your exclusive bonus for ${offer.product_name}`}
         </h2>
 
-        {banner.description && (
-          <p className="exit-desc">{banner.description}</p>
+        {offer.description && (
+          <p className="exit-desc">{offer.description}</p>
         )}
 
         {status === "ok" ? (
           <div className="exit-success">
             <span className="exit-success-check">✓</span>
             <p>You&rsquo;re in! Check your inbox.</p>
-            {banner.discount_code && (
+            {offer.discount_code && (
               <div className="exit-code">
-                Your code: <strong>{banner.discount_code}</strong>
+                Your code: <strong>{offer.discount_code}</strong>
               </div>
             )}
-            {banner.cta_url && (
+            {offer.cta_url && (
               <a
-                href={banner.cta_url}
+                href={offer.cta_url}
                 className="exit-cta-btn"
                 rel="nofollow noopener"
                 target="_blank"

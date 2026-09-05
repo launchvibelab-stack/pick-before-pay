@@ -1,6 +1,6 @@
 "use client";
 
-import { countdownLabelText, type Banner } from "@/lib/banner";
+import { countdownLabelText, type Launch } from "@/lib/launch";
 import { englishRequiredEmailProps } from "@/lib/formValidation";
 import { useEffect, useRef, useState } from "react";
 
@@ -22,9 +22,9 @@ function pad(n: number) {
   return String(n).padStart(2, "0");
 }
 
-export function LaunchOffer({ banner }: { banner: Banner }) {
+export function LaunchOffer({ offer }: { offer: Launch }) {
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(
-    banner.expires_at ? calcTimeLeft(banner.expires_at) : null
+    offer.expires_at ? calcTimeLeft(offer.expires_at) : null
   );
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "ok" | "error">("idle");
@@ -35,17 +35,17 @@ export function LaunchOffer({ banner }: { banner: Banner }) {
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    if (!banner.expires_at) return;
+    if (!offer.expires_at) return;
     timerRef.current = setInterval(() => {
-      const t = calcTimeLeft(banner.expires_at!);
+      const t = calcTimeLeft(offer.expires_at!);
       setTimeLeft(t);
       if (!t) clearInterval(timerRef.current!);
     }, 1000);
     return () => clearInterval(timerRef.current!);
-  }, [banner.expires_at]);
+  }, [offer.expires_at]);
 
-  const expired = banner.expires_at ? timeLeft === null && mounted : false;
-  if (!banner.enabled || expired) {
+  const expired = offer.expires_at ? timeLeft === null && mounted : false;
+  if (!offer.enabled || expired) {
     return (
       <div className="launch-ended">
         <h1>This offer has ended</h1>
@@ -57,13 +57,13 @@ export function LaunchOffer({ banner }: { banner: Banner }) {
     );
   }
 
-  const showCountdown = Boolean(banner.expires_at && timeLeft);
-  const hasDiscount = Boolean(banner.discount_code);
+  const showCountdown = Boolean(offer.expires_at && timeLeft);
+  const hasDiscount = Boolean(offer.discount_code);
   const submitLabel = hasDiscount ? "Get my discount" : "Get exclusive bonus";
   const positionLabel =
-    banner.label_variant === "featured_launch"
+    offer.label_variant === "featured_launch"
       ? "Featured Launch"
-      : banner.label_variant === "partner_spotlight"
+      : offer.label_variant === "partner_spotlight"
         ? "Partner Spotlight"
         : "Exclusive for PickBeforePay readers";
 
@@ -95,24 +95,24 @@ export function LaunchOffer({ banner }: { banner: Banner }) {
     <div className="launch-card">
       <p className="promo-position-label">{positionLabel}</p>
 
-      {banner.image_url && (
+      {offer.image_url && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={banner.image_url}
-          alt={banner.product_name}
+          src={offer.image_url}
+          alt={offer.product_name}
           className="launch-img"
           loading="eager"
           decoding="async"
         />
       )}
 
-      <h1 className="launch-title">{banner.product_name || "Exclusive offer"}</h1>
-      {banner.description && <p className="launch-desc">{banner.description}</p>}
+      <h1 className="launch-title">{offer.product_name || "Exclusive offer"}</h1>
+      {offer.description && <p className="launch-desc">{offer.description}</p>}
 
       {showCountdown && timeLeft && (
         <div className="promo-countdown-row launch-countdown">
-          <span className="promo-countdown-label">{countdownLabelText(banner.countdown_label)}</span>
-          <div className="promo-countdown" aria-label={countdownLabelText(banner.countdown_label)}>
+          <span className="promo-countdown-label">{countdownLabelText(offer.countdown_label)}</span>
+          <div className="promo-countdown" aria-label={countdownLabelText(offer.countdown_label)}>
             {timeLeft.days > 0 && (
               <span className="promo-unit">
                 <b>{pad(timeLeft.days)}</b>
@@ -139,14 +139,14 @@ export function LaunchOffer({ banner }: { banner: Banner }) {
         <div className="launch-success">
           <span className="promo-success-check">✓</span>
           <p>You&rsquo;re in! Check your inbox.</p>
-          {banner.discount_code && (
+          {offer.discount_code && (
             <div className="promo-code launch-code">
-              Your code: <strong>{banner.discount_code}</strong>
+              Your code: <strong>{offer.discount_code}</strong>
             </div>
           )}
-          {banner.cta_url && (
+          {offer.cta_url && (
             <a
-              href={banner.cta_url}
+              href={offer.cta_url}
               className="promo-cta-btn promo-cta-btn-lg"
               rel="nofollow sponsored noopener"
               target="_blank"
@@ -174,8 +174,8 @@ export function LaunchOffer({ banner }: { banner: Banner }) {
         </form>
       )}
 
-      {banner.review_url && (
-        <a href={banner.review_url} className="launch-review-link">
+      {offer.review_url && (
+        <a href={offer.review_url} className="launch-review-link">
           Prefer to read the full review first →
         </a>
       )}

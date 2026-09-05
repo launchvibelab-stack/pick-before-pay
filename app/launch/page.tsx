@@ -3,7 +3,7 @@ import { Header } from "@/components/Header";
 import { LaunchOffer } from "@/components/LaunchOffer";
 import { SiteFooter } from "@/components/SiteFooter";
 import { TrackPageview } from "@/components/TrackPageview";
-import { getBanner } from "@/lib/banner";
+import { getLaunch } from "@/lib/launch";
 import { siteUrl } from "@/lib/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -11,14 +11,14 @@ import Link from "next/link";
 export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const banner = await getBanner().catch(() => null);
-  const name = banner?.product_name?.trim() || "Exclusive launch";
+  const launch = await getLaunch().catch(() => null);
+  const name = launch?.product_name?.trim() || "Exclusive launch";
   const title = `${name} — Prelaunch offer`;
   const description =
-    banner?.description?.trim() ||
+    launch?.description?.trim() ||
     "Get your exclusive discount or bonus before this launch offer ends.";
   const url = `${siteUrl()}/launch`;
-  const image = banner?.image_url || "/logo.png";
+  const image = launch?.image_url || "/logo.png";
   return {
     title: { absolute: title },
     description,
@@ -33,7 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
       images: [{ url: image }]
     },
     twitter: {
-      card: banner?.image_url ? "summary_large_image" : "summary",
+      card: launch?.image_url ? "summary_large_image" : "summary",
       title,
       description,
       images: [image]
@@ -42,7 +42,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function LaunchPage() {
-  const banner = await getBanner().catch(() => null);
+  const launch = await getLaunch().catch(() => null);
 
   return (
     <>
@@ -50,8 +50,8 @@ export default async function LaunchPage() {
       <Header />
       <main className="launch-page">
         <div className="container launch-wrap">
-          {banner ? (
-            <LaunchOffer banner={banner} />
+          {launch ? (
+            <LaunchOffer offer={launch} />
           ) : (
             <div className="launch-ended">
               <h1>No active launch</h1>
@@ -66,7 +66,7 @@ export default async function LaunchPage() {
           </p>
         </div>
       </main>
-      {banner && <ExitIntentPopup banner={banner} />}
+      {launch && <ExitIntentPopup offer={launch} />}
       <SiteFooter />
     </>
   );

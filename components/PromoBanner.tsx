@@ -46,7 +46,7 @@ export function PromoBanner({ banner }: { banner: Banner }) {
 
   const showCountdown = Boolean(banner.expires_at && timeLeft);
   const hasImage = Boolean(banner.image_url);
-  const ctaLabel = banner.discount_code ? "Get the deal →" : "Claim exclusive bonus →";
+  const ctaLabel = "Get the deal →";
   const positionLabel =
     banner.label_variant === "featured_launch"
       ? "Featured Launch"
