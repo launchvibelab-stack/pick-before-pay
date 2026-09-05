@@ -17,9 +17,12 @@ export default async function AdminBannerPage() {
           <h1>Promo Banner</h1>
         </div>
       </div>
-      <p className="field-hint" style={{ marginBottom: 20, maxWidth: 560 }}>
-        Dải banner nằm dưới header trên trang chủ. Bật/tắt, đặt thời gian đếm ngược, thu email và
-        hiện mã giảm giá sau khi người dùng đăng ký.
+      <p className="field-hint" style={{ marginBottom: 20, maxWidth: 640 }}>
+        Homepage banner = nút affiliate thẳng (không form email). Thu email + mã giảm giá nằm ở trang{" "}
+        <a href="/launch" target="_blank" rel="noopener noreferrer">
+          /launch
+        </a>{" "}
+        (dùng chung cấu hình này). Cần CTA URL để banner hiện trên trang chủ.
       </p>
       <BannerEditor initial={banner} />
     </main>

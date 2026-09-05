@@ -165,14 +165,16 @@ export function BannerEditor({ initial }: Props) {
       </label>
 
       <label>
-        CTA URL (optional)
+        CTA URL (affiliate) *
         <input
           type="url"
           value={form.cta_url || ""}
           onChange={(e) => update("cta_url", e.target.value || null)}
           placeholder="https://warriorplus.com/..."
         />
-        <small className="field-hint">Link khi bấm nút CTA. Dùng affiliate link của bạn.</small>
+        <small className="field-hint">
+          Nút lớn trên banner homepage bấm thẳng vào đây. Không có URL này thì banner không hiện.
+        </small>
       </label>
 
       <label>
@@ -184,7 +186,7 @@ export function BannerEditor({ initial }: Props) {
           placeholder="https://pickbeforepay.com/posts/..."
         />
         <small className="field-hint">
-          Hiện nút &ldquo;View full review&rdquo;. Để trống thì không hiện — dành cho người chưa nhập email.
+          Chỉ hiện trên trang <code>/launch</code> (link đọc review). Không hiện trên banner homepage.
         </small>
       </label>
 
@@ -262,7 +264,7 @@ export function BannerEditor({ initial }: Props) {
           maxLength={60}
         />
         <small className="field-hint">
-          Hiện sau khi người dùng nhập email. Để trống nếu không có mã.
+          Hiện trên trang <code>/launch</code> sau khi người lạ nhập email. Banner homepage không thu email.
         </small>
       </label>
 

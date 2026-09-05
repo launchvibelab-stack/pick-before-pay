@@ -204,6 +204,151 @@ button, input, textarea, select { font: inherit; }
 }
 .promo-cta-btn:hover { background: #c73652; transform: translateY(-1px); }
 .promo-cta-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+.promo-cta-btn-lg {
+  padding: 14px 22px;
+  font-size: 15px;
+  border-radius: 12px;
+  min-width: 200px;
+}
+
+/* —— Launch / prelaunch page —— */
+.launch-page {
+  min-height: 60vh;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(233, 69, 96, 0.12), transparent),
+    var(--bg);
+}
+.launch-wrap {
+  max-width: 520px;
+  padding: 48px 0 64px;
+}
+.launch-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 28px 24px 24px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+  text-align: center;
+}
+.launch-card .promo-position-label {
+  background: rgba(15, 15, 20, 0.08);
+  border-color: rgba(15, 15, 20, 0.12);
+  color: var(--text);
+  margin-bottom: 16px;
+}
+.launch-img {
+  width: min(180px, 55%);
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 16px;
+  margin: 0 auto 16px;
+  display: block;
+  border: 1px solid var(--line);
+}
+.launch-title {
+  margin: 0 0 10px;
+  font-size: clamp(24px, 4vw, 30px);
+  letter-spacing: -0.03em;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.launch-desc {
+  margin: 0 0 18px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.55;
+}
+.launch-countdown {
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.launch-countdown .promo-countdown-label {
+  color: var(--muted);
+}
+.launch-countdown .promo-unit {
+  background: #f3f4f7;
+}
+.launch-countdown .promo-unit b {
+  color: var(--text);
+}
+.launch-countdown .promo-unit small {
+  color: var(--muted);
+}
+.launch-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.launch-form input[type="email"] {
+  padding: 13px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  font-size: 15px;
+  background: #fafafa;
+  color: var(--text);
+  outline: none;
+  width: 100%;
+}
+.launch-form input[type="email"]:focus {
+  border-color: #9bb6f5;
+  box-shadow: 0 0 0 4px rgba(47, 111, 237, 0.12);
+}
+.launch-form .promo-cta-btn {
+  width: 100%;
+}
+.launch-hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.launch-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.launch-success p {
+  margin: 0;
+  font-weight: 650;
+}
+.launch-code {
+  background: #f6f7fb;
+  border: 1px dashed var(--line-strong);
+  color: var(--muted);
+  padding: 12px 18px;
+  border-radius: 12px;
+}
+.launch-code strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 20px;
+  color: var(--text);
+  letter-spacing: 0.04em;
+}
+.launch-review-link {
+  display: inline-block;
+  margin-top: 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--focus);
+}
+.launch-back {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 14px;
+}
+.launch-ended {
+  text-align: center;
+  padding: 48px 20px;
+}
+.launch-ended h1 {
+  margin: 0 0 10px;
+  font-size: 28px;
+}
+.launch-ended p {
+  margin: 0 0 20px;
+  color: var(--muted);
+}
 .promo-error {
   width: 100%;
   margin: 2px 0 0;

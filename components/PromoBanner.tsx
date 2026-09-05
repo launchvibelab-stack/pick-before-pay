@@ -1,7 +1,6 @@
 "use client";
 
 import { countdownLabelText, type Banner } from "@/lib/banner";
-import { englishRequiredEmailProps } from "@/lib/formValidation";
 import { useEffect, useRef, useState } from "react";
 
 type TimeLeft = { days: number; hours: number; minutes: number; seconds: number };
@@ -26,13 +25,9 @@ export function PromoBanner({ banner }: { banner: Banner }) {
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(
     banner.expires_at ? calcTimeLeft(banner.expires_at) : null
   );
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "ok" | "error">("idle");
-  const [errMsg, setErrMsg] = useState("");
   const [dismissed, setDismissed] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Hydration-safe: mark when component mounts
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -46,37 +41,12 @@ export function PromoBanner({ banner }: { banner: Banner }) {
     return () => clearInterval(timerRef.current!);
   }, [banner.expires_at]);
 
-  // expired or disabled or dismissed
-  const expired = banner.expires_at ? (timeLeft === null && mounted) : false;
-  if (!banner.enabled || expired || dismissed) return null;
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!email.trim()) return;
-    setStatus("loading");
-    setErrMsg("");
-    try {
-      const r = await fetch("/api/subscribe", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email: email.trim() })
-      });
-      const j = await r.json().catch(() => ({}));
-      if (!r.ok) {
-        setStatus("error");
-        setErrMsg(j.error || "Please try again.");
-        return;
-      }
-      setStatus("ok");
-    } catch {
-      setStatus("error");
-      setErrMsg("Network error. Please try again.");
-    }
-  }
+  const expired = banner.expires_at ? timeLeft === null && mounted : false;
+  if (!banner.enabled || expired || dismissed || !banner.cta_url) return null;
 
   const showCountdown = Boolean(banner.expires_at && timeLeft);
   const hasImage = Boolean(banner.image_url);
-  const ctaLabel = banner.discount_code ? "Get discount" : "Get exclusive bonus";
+  const ctaLabel = banner.discount_code ? "Get the deal →" : "Claim exclusive bonus →";
   const positionLabel =
     banner.label_variant === "featured_launch"
       ? "Featured Launch"
@@ -87,7 +57,6 @@ export function PromoBanner({ banner }: { banner: Banner }) {
   return (
     <div className="promo-banner" role="region" aria-label="Special offer">
       <div className="promo-banner-inner container">
-        {/* Left: image */}
         {hasImage && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -99,7 +68,6 @@ export function PromoBanner({ banner }: { banner: Banner }) {
           />
         )}
 
-        {/* Center: text + countdown */}
         <div className="promo-banner-body">
           <p className="promo-position-label">{positionLabel}</p>
           {banner.product_name && (
@@ -107,9 +75,7 @@ export function PromoBanner({ banner }: { banner: Banner }) {
               <span className="promo-fire">🔥</span> {banner.product_name}
             </p>
           )}
-          {banner.description && (
-            <p className="promo-banner-desc">{banner.description}</p>
-          )}
+          {banner.description && <p className="promo-banner-desc">{banner.description}</p>}
 
           {showCountdown && timeLeft && (
             <div className="promo-countdown-row">
@@ -117,73 +83,39 @@ export function PromoBanner({ banner }: { banner: Banner }) {
               <div className="promo-countdown" aria-label={countdownLabelText(banner.countdown_label)}>
                 {timeLeft.days > 0 && (
                   <span className="promo-unit">
-                    <b>{pad(timeLeft.days)}</b><small>d</small>
+                    <b>{pad(timeLeft.days)}</b>
+                    <small>d</small>
                   </span>
                 )}
                 <span className="promo-unit">
-                  <b>{pad(timeLeft.hours)}</b><small>h</small>
+                  <b>{pad(timeLeft.hours)}</b>
+                  <small>h</small>
                 </span>
                 <span className="promo-unit">
-                  <b>{pad(timeLeft.minutes)}</b><small>m</small>
+                  <b>{pad(timeLeft.minutes)}</b>
+                  <small>m</small>
                 </span>
                 <span className="promo-unit">
-                  <b>{pad(timeLeft.seconds)}</b><small>s</small>
+                  <b>{pad(timeLeft.seconds)}</b>
+                  <small>s</small>
                 </span>
               </div>
             </div>
           )}
         </div>
 
-        {/* Right: form or success */}
         <div className="promo-banner-cta">
-          {status === "ok" ? (
-            <div className="promo-success">
-              <span className="promo-success-check">✓</span>
-              <span>You&rsquo;re in!</span>
-              {banner.discount_code && (
-                <span className="promo-code">
-                  Use code&nbsp;<b>{banner.discount_code}</b>
-                </span>
-              )}
-              {banner.cta_url && (
-                <a
-                  href={banner.cta_url}
-                  className="promo-cta-btn"
-                  rel="nofollow noopener"
-                  target="_blank"
-                >
-                  {banner.discount_code ? "Grab the deal →" : "Claim your bonus →"}
-                </a>
-              )}
-            </div>
-          ) : (
-            <form className="promo-form" onSubmit={handleSubmit}>
-              <input
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={status === "loading"}
-                autoComplete="email"
-                {...englishRequiredEmailProps()}
-              />
-              <button type="submit" className="promo-cta-btn" disabled={status === "loading"}>
-                {status === "loading" ? "…" : ctaLabel}
-              </button>
-              {status === "error" && (
-                <p className="promo-error">{errMsg}</p>
-              )}
-            </form>
-          )}
-          {banner.review_url && (
-            <a href={banner.review_url} className="promo-review-link">
-              View full review →
-            </a>
-          )}
+          <a
+            href={banner.cta_url}
+            className="promo-cta-btn promo-cta-btn-lg"
+            rel="nofollow sponsored noopener"
+            target="_blank"
+          >
+            {ctaLabel}
+          </a>
         </div>
       </div>
 
-      {/* Dismiss button */}
       <button
         type="button"
         className="promo-dismiss"
