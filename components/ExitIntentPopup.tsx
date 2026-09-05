@@ -1,6 +1,7 @@
 "use client";
 
 import type { Launch } from "@/lib/launch";
+import { launchCtaLabel, launchCtaNote } from "@/lib/launch";
 import { englishRequiredEmailProps } from "@/lib/formValidation";
 import { useEffect, useRef, useState } from "react";
 
@@ -61,7 +62,7 @@ export function ExitIntentPopup({ offer }: { offer: Launch }) {
   if (!visible) return null;
 
   const hasDiscount = Boolean(offer.discount_code);
-  const ctaLabel = hasDiscount ? "Get my discount" : "Get exclusive bonus";
+  const ctaLabel = launchCtaLabel(offer);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -121,9 +122,7 @@ export function ExitIntentPopup({ offer }: { offer: Launch }) {
             : `Get your exclusive bonus for ${offer.product_name}`}
         </h2>
 
-        {(offer.cta_note || offer.description) && (
-          <p className="exit-desc">{offer.cta_note || offer.description}</p>
-        )}
+        <p className="exit-desc">{launchCtaNote(offer)}</p>
 
         {status === "ok" ? (
           <div className="exit-success">

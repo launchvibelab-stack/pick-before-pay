@@ -6,6 +6,7 @@ create table if not exists public.launches (
   headline text not null default '',
   description text not null default '',
   cta_note text not null default '',
+  cta_label text not null default '',
   body_md text not null default '',
   proof_md text not null default '',
   image_url text,

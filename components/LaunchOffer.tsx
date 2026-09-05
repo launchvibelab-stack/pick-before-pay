@@ -2,6 +2,8 @@
 
 import {
   countdownLabelText,
+  launchCtaLabel,
+  launchCtaNote,
   launchLabelText,
   parseLaunchLines,
   type Launch
@@ -36,7 +38,8 @@ function EmailGate({
   status,
   setStatus,
   errMsg,
-  setErrMsg
+  setErrMsg,
+  showTimerHint
 }: {
   offer: Launch;
   email: string;
@@ -45,14 +48,10 @@ function EmailGate({
   setStatus: (s: FormStatus) => void;
   errMsg: string;
   setErrMsg: (m: string) => void;
+  showTimerHint: boolean;
 }) {
-  const hasDiscount = Boolean(offer.discount_code);
-  const submitLabel = hasDiscount ? "Get my discount" : "Get exclusive access";
-  const note =
-    offer.cta_note.trim() ||
-    (hasDiscount
-      ? "Code sent instantly. No spam."
-      : "Early access only. No spam.");
+  const submitLabel = launchCtaLabel(offer);
+  const note = launchCtaNote(offer);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -95,7 +94,7 @@ function EmailGate({
             rel="nofollow sponsored noopener"
             target="_blank"
           >
-            {hasDiscount ? "Grab the deal →" : "Claim your access →"}
+            Grab the deal →
           </a>
         )}
       </div>
@@ -120,6 +119,11 @@ function EmailGate({
       </div>
       {status === "error" && <p className="promo-error launch-form-error">{errMsg}</p>}
       <p className="launch-hint">{note}</p>
+      {showTimerHint && (
+        <p className="launch-timer-hint">
+          The timer is when this early offer ends - your code still arrives instantly.
+        </p>
+      )}
     </form>
   );
 }
@@ -171,28 +175,31 @@ export function LaunchOffer({ offer }: { offer: Launch }) {
         <header className="launch-panel-top">
           <p className="promo-position-label launch-hero-label">{launchLabelText(offer.label_variant)}</p>
           {showCountdown && timeLeft && (
-            <div className="promo-countdown-row launch-countdown">
-              <span className="promo-countdown-label">{countdownLabelText(offer.countdown_label)}</span>
-              <div className="promo-countdown" aria-label={countdownLabelText(offer.countdown_label)}>
-                {timeLeft.days > 0 && (
+            <div className="launch-countdown-block">
+              <div className="promo-countdown-row launch-countdown">
+                <span className="promo-countdown-label">{countdownLabelText(offer.countdown_label)}</span>
+                <div className="promo-countdown" aria-label={countdownLabelText(offer.countdown_label)}>
+                  {timeLeft.days > 0 && (
+                    <span className="promo-unit">
+                      <b>{pad(timeLeft.days)}</b>
+                      <small>d</small>
+                    </span>
+                  )}
                   <span className="promo-unit">
-                    <b>{pad(timeLeft.days)}</b>
-                    <small>d</small>
+                    <b>{pad(timeLeft.hours)}</b>
+                    <small>h</small>
                   </span>
-                )}
-                <span className="promo-unit">
-                  <b>{pad(timeLeft.hours)}</b>
-                  <small>h</small>
-                </span>
-                <span className="promo-unit">
-                  <b>{pad(timeLeft.minutes)}</b>
-                  <small>m</small>
-                </span>
-                <span className="promo-unit">
-                  <b>{pad(timeLeft.seconds)}</b>
-                  <small>s</small>
-                </span>
+                  <span className="promo-unit">
+                    <b>{pad(timeLeft.minutes)}</b>
+                    <small>m</small>
+                  </span>
+                  <span className="promo-unit">
+                    <b>{pad(timeLeft.seconds)}</b>
+                    <small>s</small>
+                  </span>
+                </div>
               </div>
+              <p className="launch-countdown-caption">Early offer window</p>
             </div>
           )}
         </header>
@@ -243,31 +250,22 @@ export function LaunchOffer({ offer }: { offer: Launch }) {
                 setStatus={setStatus}
                 errMsg={errMsg}
                 setErrMsg={setErrMsg}
+                showTimerHint={showCountdown}
               />
             </div>
 
-            <div className="launch-panel-links">
-              {offer.review_url && (
+            {offer.review_url && (
+              <div className="launch-panel-links">
                 <a href={offer.review_url} className="launch-review-link">
                   Read our review →
                 </a>
-              )}
-              {offer.cta_url && status !== "ok" && (
-                <a
-                  href={offer.cta_url}
-                  className="launch-sales-link"
-                  rel="nofollow sponsored noopener"
-                  target="_blank"
-                >
-                  Full sales page →
-                </a>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
 
         <p className="launch-footnote">
-          This page is just your early code — the full pitch lives on the sales page.
+          This page is just your early code - the full pitch lives on the sales page.
         </p>
       </section>
     </div>

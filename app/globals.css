@@ -258,9 +258,28 @@ button, input, textarea, select { font: inherit; }
   color: var(--text);
   margin: 0;
 }
+.launch-countdown-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
 .launch-countdown {
   justify-content: flex-end;
   margin: 0;
+}
+.launch-countdown-caption {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+.launch-timer-hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
 }
 .launch-countdown .promo-countdown-label {
   color: var(--muted);
@@ -449,14 +468,10 @@ button, input, textarea, select { font: inherit; }
   gap: 8px 18px;
   margin-top: 12px;
 }
-.launch-review-link,
-.launch-sales-link {
+.launch-review-link {
   font-size: 13px;
   font-weight: 650;
   color: var(--focus);
-}
-.launch-sales-link {
-  color: var(--muted);
 }
 .launch-footnote {
   margin: 18px 0 0;

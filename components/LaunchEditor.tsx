@@ -98,6 +98,7 @@ export function LaunchEditor({ initial }: Props) {
         headline: String(j.headline || ""),
         description: String(j.description || ""),
         cta_note: String(j.cta_note || ""),
+        cta_label: String(j.cta_label || ""),
         body_md: String(j.body_md || ""),
         proof_md: String(j.proof_md || ""),
         image_url: j.image_url || null,
@@ -182,14 +183,31 @@ export function LaunchEditor({ initial }: Props) {
       </label>
 
       <label>
-        Note under email button
+        Email button label
+        <input
+          type="text"
+          value={form.cta_label}
+          onChange={(e) => update("cta_label", e.target.value)}
+          placeholder="Get My 20% Launch Code"
+          maxLength={60}
+        />
+        <small className="field-hint">
+          Để trống = mặc định &quot;Get My 20% Launch Code&quot;. Nên ghi rõ họ nhận gì.
+        </small>
+      </label>
+
+      <label>
+        Microcopy under email button
         <input
           type="text"
           value={form.cta_note}
           onChange={(e) => update("cta_note", e.target.value)}
-          placeholder="20% off at launch — code sent to your inbox instantly."
+          placeholder="Instant code delivery. No spam, unsubscribe anytime."
           maxLength={160}
         />
+        <small className="field-hint">
+          Để trống = dùng câu trên. Timer còn được chú thích riêng: offer ends vs code arrives instantly.
+        </small>
       </label>
 
       <label>

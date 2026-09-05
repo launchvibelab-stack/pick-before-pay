@@ -25,9 +25,11 @@ export type Launch = {
   headline: string;
   /** Short supporting line under the headline. */
   description: string;
-  /** Line under the email CTA reinforcing the offer. */
+  /** Line under the email CTA (trust / no-spam). */
   cta_note: string;
-  /** Long-form prelaunch copy (markdown). */
+  /** Primary email-form button label. */
+  cta_label: string;
+  /** Short highlight lines (one per line). */
   body_md: string;
   /** Short proof / social-proof block (markdown). */
   proof_md: string;
@@ -46,6 +48,7 @@ export const defaultLaunch = (): Launch => ({
   headline: "",
   description: "",
   cta_note: "",
+  cta_label: "",
   body_md: "",
   proof_md: "",
   image_url: null,
@@ -80,6 +83,17 @@ export function parseLaunchLines(raw: string, max = 5): string[] {
     .slice(0, max);
 }
 
+export function launchCtaLabel(offer: Pick<Launch, "cta_label" | "discount_code">): string {
+  const custom = String(offer.cta_label || "").trim();
+  if (custom) return custom;
+  return offer.discount_code ? "Get My 20% Launch Code" : "Get Exclusive Access";
+}
+
+export function launchCtaNote(offer: Pick<Launch, "cta_note">): string {
+  const custom = String(offer.cta_note || "").trim();
+  return custom || "Instant code delivery. No spam, unsubscribe anytime.";
+}
+
 function normalizeLabelVariant(v: unknown): LaunchLabelVariant {
   const s = String(v || "").trim().toLowerCase();
   if (
@@ -107,6 +121,7 @@ function normalize(row: Record<string, unknown> | null | undefined): Launch {
     headline: String(row.headline || ""),
     description: String(row.description || ""),
     cta_note: String(row.cta_note || ""),
+    cta_label: String(row.cta_label || ""),
     body_md: String(row.body_md || ""),
     proof_md: String(row.proof_md || ""),
     image_url: row.image_url ? String(row.image_url) : null,
@@ -147,6 +162,7 @@ export async function saveLaunch(input: Launch): Promise<Launch> {
     headline: String(input.headline || "").trim(),
     description: String(input.description || "").trim(),
     cta_note: String(input.cta_note || "").trim(),
+    cta_label: String(input.cta_label || "").trim(),
     body_md: String(input.body_md || "").trim(),
     proof_md: String(input.proof_md || "").trim(),
     image_url: image.url,
@@ -166,9 +182,9 @@ export async function saveLaunch(input: Launch): Promise<Launch> {
     if (/relation .*launches.* does not exist|Could not find the table|schema cache/i.test(error.message)) {
       throw new Error("Launch table missing. Run supabase/migration_launch.sql in the Supabase SQL editor.");
     }
-    if (/body_md|headline|cta_note|proof_md|column .* does not exist/i.test(error.message)) {
+    if (/body_md|headline|cta_note|cta_label|proof_md|column .* does not exist/i.test(error.message)) {
       throw new Error(
-        "Launch columns missing. Run supabase/migration_launch_body.sql and migration_launch_conversion.sql in Supabase."
+        "Launch columns missing. Run supabase/migration_launch_body.sql, migration_launch_conversion.sql, and migration_launch_cta_label.sql in Supabase."
       );
     }
     throw new Error(error.message);
