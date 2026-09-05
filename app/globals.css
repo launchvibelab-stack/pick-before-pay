@@ -46,17 +46,18 @@ button, input, textarea, select { font: inherit; }
   display: flex;
   align-items: center;
   gap: 20px;
-  padding-top: 14px;
-  padding-bottom: 14px;
+  padding-top: 16px;
+  padding-bottom: 16px;
   flex-wrap: wrap;
 }
 .promo-banner-img {
-  width: 60px;
-  height: 60px;
+  width: 96px;
+  height: 96px;
   object-fit: cover;
-  border-radius: 12px;
+  border-radius: 14px;
   flex-shrink: 0;
-  border: 2px solid rgba(255,255,255,0.15);
+  border: 2px solid rgba(255,255,255,0.18);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
 }
 .promo-banner-body {
   flex: 1;
@@ -474,6 +475,10 @@ button, input, textarea, select { font: inherit; }
 @media (max-width: 700px) {
   .promo-banner-inner {
     gap: 14px;
+  }
+  .promo-banner-img {
+    width: 80px;
+    height: 80px;
   }
   .promo-banner-cta { min-width: 0; width: 100%; }
   .promo-form { flex-direction: column; align-items: stretch; }
