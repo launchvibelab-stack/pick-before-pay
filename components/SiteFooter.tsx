@@ -1,22 +1,29 @@
 import Link from "next/link";
 import { SubscribeForm } from "@/components/SubscribeForm";
 
-export function SiteFooter() {
+type Props = {
+  /** Hide the Scorecard email block (e.g. on /launch so it doesn't compete). */
+  hideSubscribe?: boolean;
+};
+
+export function SiteFooter({ hideSubscribe = false }: Props) {
   const year = new Date().getFullYear();
 
   return (
     <footer className="site-footer">
       <div className="container">
-        <div className="footer-subscribe">
-          <div>
-            <h2 className="footer-sub-title">Free Buyer’s Scorecard</h2>
-            <p>
-              Get the PDF in your inbox now - score any tool or course before you buy. Short tips after;
-              unsubscribe anytime.
-            </p>
+        {!hideSubscribe && (
+          <div className="footer-subscribe">
+            <div>
+              <h2 className="footer-sub-title">Free Buyer’s Scorecard</h2>
+              <p>
+                Get the PDF in your inbox now - score any tool or course before you buy. Short tips after;
+                unsubscribe anytime.
+              </p>
+            </div>
+            <SubscribeForm compact />
           </div>
-          <SubscribeForm compact />
-        </div>
+        )}
 
         <nav className="footer-nav" aria-label="Site">
           <Link href="/about">About</Link>

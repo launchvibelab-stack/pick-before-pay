@@ -121,8 +121,8 @@ export function ExitIntentPopup({ offer }: { offer: Launch }) {
             : `Get your exclusive bonus for ${offer.product_name}`}
         </h2>
 
-        {offer.description && (
-          <p className="exit-desc">{offer.description}</p>
+        {(offer.cta_note || offer.description) && (
+          <p className="exit-desc">{offer.cta_note || offer.description}</p>
         )}
 
         {status === "ok" ? (

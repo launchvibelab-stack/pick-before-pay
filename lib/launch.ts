@@ -1,51 +1,80 @@
 import {
   BANNER_COUNTDOWN_LABELS,
-  BANNER_LABEL_VARIANTS,
   countdownLabelText,
-  type BannerCountdownLabel,
-  type BannerLabelVariant
+  type BannerCountdownLabel
 } from "@/lib/banner";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { normalizeSafeHttpsUrl } from "@/lib/urls";
 
-export { BANNER_COUNTDOWN_LABELS, BANNER_LABEL_VARIANTS, countdownLabelText };
-export type { BannerCountdownLabel, BannerLabelVariant };
+export { BANNER_COUNTDOWN_LABELS, countdownLabelText };
+export type { BannerCountdownLabel };
+
+export const LAUNCH_LABEL_VARIANTS = [
+  "early_access",
+  "featured_launch",
+  "partner_spotlight",
+  "exclusive_readers"
+] as const;
+export type LaunchLabelVariant = (typeof LAUNCH_LABEL_VARIANTS)[number];
 
 /** Config for /launch email-capture page (independent from homepage banner). */
 export type Launch = {
   enabled: boolean;
   product_name: string;
-  /** Short hero hook (1–2 sentences). */
+  /** Outcome-first H1 for cold visitors. Falls back to product_name. */
+  headline: string;
+  /** Short supporting line under the headline. */
   description: string;
+  /** Line under the email CTA reinforcing the offer. */
+  cta_note: string;
   /** Long-form prelaunch copy (markdown). */
   body_md: string;
+  /** Short proof / social-proof block (markdown). */
+  proof_md: string;
   image_url: string | null;
   expires_at: string | null;
   discount_code: string | null;
   cta_url: string | null;
   review_url: string | null;
-  label_variant: BannerLabelVariant;
+  label_variant: LaunchLabelVariant;
   countdown_label: BannerCountdownLabel;
 };
 
 export const defaultLaunch = (): Launch => ({
   enabled: false,
   product_name: "",
+  headline: "",
   description: "",
+  cta_note: "",
   body_md: "",
+  proof_md: "",
   image_url: null,
   expires_at: null,
   discount_code: null,
   cta_url: null,
   review_url: null,
-  label_variant: "exclusive_readers",
+  label_variant: "early_access",
   countdown_label: "ends_in"
 });
 
-function normalizeLabelVariant(v: unknown): BannerLabelVariant {
+export function launchLabelText(variant: LaunchLabelVariant): string {
+  if (variant === "early_access") return "Early access · Launch offer";
+  if (variant === "featured_launch") return "Featured Launch";
+  if (variant === "partner_spotlight") return "Partner Spotlight";
+  return "Exclusive for PickBeforePay readers";
+}
+
+function normalizeLabelVariant(v: unknown): LaunchLabelVariant {
   const s = String(v || "").trim().toLowerCase();
-  if (s === "featured_launch" || s === "partner_spotlight" || s === "exclusive_readers") return s;
-  return "exclusive_readers";
+  if (
+    s === "early_access" ||
+    s === "featured_launch" ||
+    s === "partner_spotlight" ||
+    s === "exclusive_readers"
+  ) {
+    return s;
+  }
+  return "early_access";
 }
 
 function normalizeCountdownLabel(v: unknown): BannerCountdownLabel {
@@ -59,8 +88,11 @@ function normalize(row: Record<string, unknown> | null | undefined): Launch {
   return {
     enabled: Boolean(row.enabled),
     product_name: String(row.product_name || ""),
+    headline: String(row.headline || ""),
     description: String(row.description || ""),
+    cta_note: String(row.cta_note || ""),
     body_md: String(row.body_md || ""),
+    proof_md: String(row.proof_md || ""),
     image_url: row.image_url ? String(row.image_url) : null,
     expires_at: row.expires_at ? String(row.expires_at) : null,
     discount_code: row.discount_code ? String(row.discount_code) : null,
@@ -96,8 +128,11 @@ export async function saveLaunch(input: Launch): Promise<Launch> {
   const launch: Launch = {
     enabled: Boolean(input.enabled),
     product_name: String(input.product_name || "").trim(),
+    headline: String(input.headline || "").trim(),
     description: String(input.description || "").trim(),
+    cta_note: String(input.cta_note || "").trim(),
     body_md: String(input.body_md || "").trim(),
+    proof_md: String(input.proof_md || "").trim(),
     image_url: image.url,
     expires_at: input.expires_at || null,
     discount_code: input.discount_code?.trim() || null,
@@ -115,8 +150,10 @@ export async function saveLaunch(input: Launch): Promise<Launch> {
     if (/relation .*launches.* does not exist|Could not find the table|schema cache/i.test(error.message)) {
       throw new Error("Launch table missing. Run supabase/migration_launch.sql in the Supabase SQL editor.");
     }
-    if (/body_md|column .* does not exist/i.test(error.message)) {
-      throw new Error("Launch body column missing. Run supabase/migration_launch_body.sql in the Supabase SQL editor.");
+    if (/body_md|headline|cta_note|proof_md|column .* does not exist/i.test(error.message)) {
+      throw new Error(
+        "Launch columns missing. Run supabase/migration_launch_body.sql and migration_launch_conversion.sql in Supabase."
+      );
     }
     throw new Error(error.message);
   }

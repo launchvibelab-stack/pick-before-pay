@@ -22,7 +22,7 @@ export default async function AdminLaunchPage() {
         <a href="/launch" target="_blank" rel="noopener noreferrer">
           /launch
         </a>
-        : thu email, mã giảm giá, countdown, CTA, và mô tả dài kiểu trang prelaunch. Không dùng chung với banner homepage.
+        : thu email + trang prelaunch (headline outcome, proof, body dài). Scorecard footer bị ẩn trên /launch.
       </p>
       <LaunchEditor initial={launch} />
     </main>

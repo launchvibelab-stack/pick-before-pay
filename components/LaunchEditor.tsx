@@ -2,10 +2,10 @@
 
 import {
   BANNER_COUNTDOWN_LABELS,
-  BANNER_LABEL_VARIANTS,
+  LAUNCH_LABEL_VARIANTS,
   type BannerCountdownLabel,
-  type BannerLabelVariant,
-  type Launch
+  type Launch,
+  type LaunchLabelVariant
 } from "@/lib/launch";
 import { useState } from "react";
 
@@ -40,6 +40,13 @@ function displayIso(iso: string | null): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()} — ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function labelOptionText(v: LaunchLabelVariant) {
+  if (v === "early_access") return "Early access · Launch offer (best for ads)";
+  if (v === "featured_launch") return "Featured Launch";
+  if (v === "partner_spotlight") return "Partner Spotlight";
+  return "Exclusive for PickBeforePay readers";
 }
 
 export function LaunchEditor({ initial }: Props) {
@@ -88,14 +95,17 @@ export function LaunchEditor({ initial }: Props) {
       setForm({
         enabled: Boolean(j.enabled),
         product_name: String(j.product_name || ""),
+        headline: String(j.headline || ""),
         description: String(j.description || ""),
+        cta_note: String(j.cta_note || ""),
         body_md: String(j.body_md || ""),
+        proof_md: String(j.proof_md || ""),
         image_url: j.image_url || null,
         expires_at: j.expires_at || null,
         discount_code: j.discount_code || null,
         cta_url: j.cta_url || null,
         review_url: j.review_url || null,
-        label_variant: j.label_variant || "exclusive_readers",
+        label_variant: j.label_variant || "early_access",
         countdown_label: j.countdown_label || "ends_in"
       });
       setStatus("ok");
@@ -124,15 +134,11 @@ export function LaunchEditor({ initial }: Props) {
         Offer label
         <select
           value={form.label_variant}
-          onChange={(e) => update("label_variant", e.target.value as BannerLabelVariant)}
+          onChange={(e) => update("label_variant", e.target.value as LaunchLabelVariant)}
         >
-          {BANNER_LABEL_VARIANTS.map((v) => (
+          {LAUNCH_LABEL_VARIANTS.map((v) => (
             <option key={v} value={v}>
-              {v === "featured_launch"
-                ? "Featured Launch"
-                : v === "partner_spotlight"
-                  ? "Partner Spotlight"
-                  : "Exclusive for PickBeforePay readers"}
+              {labelOptionText(v)}
             </option>
           ))}
         </select>
@@ -144,34 +150,71 @@ export function LaunchEditor({ initial }: Props) {
           type="text"
           value={form.product_name}
           onChange={(e) => update("product_name", e.target.value)}
-          placeholder="e.g. Cold Case Cash"
+          placeholder="e.g. Halloween Comic Creator GPT"
           maxLength={120}
         />
+        <small className="field-hint">Hiện nhỏ dưới headline (khi có headline). Dùng cho title/SEO.</small>
       </label>
 
       <label>
-        Short hook (hero)
+        Headline (outcome-first) *
+        <input
+          type="text"
+          value={form.headline}
+          onChange={(e) => update("headline", e.target.value)}
+          placeholder="e.g. Create a Halloween comic in one prompt"
+          maxLength={140}
+        />
+        <small className="field-hint">
+          H1 chính cho người lạ. Để trống thì dùng product name làm H1.
+        </small>
+      </label>
+
+      <label>
+        Short support line
         <textarea
           rows={2}
           value={form.description}
           onChange={(e) => update("description", e.target.value)}
-          placeholder="1–2 sentences under the title — what they get if they join now"
+          placeholder="Kid-friendly comic blueprints — story, characters, and image prompts ready for KDP & Etsy."
           maxLength={220}
         />
-        <small className="field-hint">Hiện ngay dưới tên sản phẩm, trên form email.</small>
+      </label>
+
+      <label>
+        Note under email button
+        <input
+          type="text"
+          value={form.cta_note}
+          onChange={(e) => update("cta_note", e.target.value)}
+          placeholder="20% off at launch — code sent to your inbox instantly."
+          maxLength={160}
+        />
+      </label>
+
+      <label>
+        Proof block (optional)
+        <textarea
+          rows={5}
+          value={form.proof_md}
+          onChange={(e) => update("proof_md", e.target.value)}
+          placeholder={`**412** ready-to-use prompts\n\n> “I sketched a full comic outline in one sitting.” — early reader`}
+          className="launch-body-editor"
+        />
+        <small className="field-hint">Stat / quote ngắn — hiện giữa hero và body dài.</small>
       </label>
 
       <label>
         Long description (prelaunch body)
         <textarea
-          rows={14}
+          rows={16}
           value={form.body_md}
           onChange={(e) => update("body_md", e.target.value)}
-          placeholder={`## Why this matters\n\nPain point for cold visitors…\n\n## What's included\n\n- Benefit one\n- Benefit two\n- Benefit three\n\n## Who it's for\n\n…`}
+          placeholder={`## How it works\n\n1. …\n2. …\n3. …\n\n## What's included\n\n- …\n\n## Who it's for\n\n…\n\n## Who it's not for\n\n…\n\n## FAQ\n\n**When do I get the code?** …`}
           className="launch-body-editor"
         />
         <small className="field-hint">
-          Markdown được hỗ trợ (## heading, list, bold). Dùng để thuyết phục người lạ — hiện dưới hero.
+          Markdown. Nên có: how it works, what&apos;s included, who it&apos;s for, FAQ ngắn.
         </small>
       </label>
 
@@ -183,7 +226,6 @@ export function LaunchEditor({ initial }: Props) {
           onChange={(e) => update("cta_url", e.target.value || null)}
           placeholder="https://warriorplus.com/..."
         />
-        <small className="field-hint">Hiện sau khi nhập email (Grab the deal / Claim bonus).</small>
       </label>
 
       <label>
@@ -194,7 +236,6 @@ export function LaunchEditor({ initial }: Props) {
           onChange={(e) => update("review_url", e.target.value || null)}
           placeholder="https://pickbeforepay.com/posts/..."
         />
-        <small className="field-hint">Link “Prefer to read the full review first” trên /launch.</small>
       </label>
 
       <label>
@@ -206,7 +247,6 @@ export function LaunchEditor({ initial }: Props) {
           placeholder="e.g. EARLY30"
           maxLength={60}
         />
-        <small className="field-hint">Hiện sau khi submit email. Để trống nếu chỉ tặng bonus.</small>
       </label>
 
       <label>
@@ -272,7 +312,6 @@ export function LaunchEditor({ initial }: Props) {
             ✓ <b>{displayIso(form.expires_at)}</b> (giờ máy bạn)
           </small>
         )}
-        <small className="field-hint">Hết giờ thì /launch hiện “This offer has ended”.</small>
       </div>
 
       <label className="upload">

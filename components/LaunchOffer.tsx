@@ -1,7 +1,7 @@
 "use client";
 
 import { MarkdownContent } from "@/components/MarkdownContent";
-import { countdownLabelText, type Launch } from "@/lib/launch";
+import { countdownLabelText, launchLabelText, type Launch } from "@/lib/launch";
 import { englishRequiredEmailProps } from "@/lib/formValidation";
 import { useEffect, useRef, useState } from "react";
 
@@ -23,12 +23,6 @@ function pad(n: number) {
   return String(n).padStart(2, "0");
 }
 
-function positionLabelText(variant: Launch["label_variant"]) {
-  if (variant === "featured_launch") return "Featured Launch";
-  if (variant === "partner_spotlight") return "Partner Spotlight";
-  return "Exclusive for PickBeforePay readers";
-}
-
 type FormStatus = "idle" | "loading" | "ok" | "error";
 
 function EmailGate({
@@ -38,8 +32,7 @@ function EmailGate({
   status,
   setStatus,
   errMsg,
-  setErrMsg,
-  variant = "primary"
+  setErrMsg
 }: {
   offer: Launch;
   email: string;
@@ -48,10 +41,14 @@ function EmailGate({
   setStatus: (s: FormStatus) => void;
   errMsg: string;
   setErrMsg: (m: string) => void;
-  variant?: "primary" | "bottom";
 }) {
   const hasDiscount = Boolean(offer.discount_code);
   const submitLabel = hasDiscount ? "Get my discount" : "Get exclusive access";
+  const note =
+    offer.cta_note.trim() ||
+    (hasDiscount
+      ? "Join the list — your code is sent instantly. No spam."
+      : "Join the early-access list. No spam.");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -79,7 +76,7 @@ function EmailGate({
 
   if (status === "ok") {
     return (
-      <div className={`launch-success ${variant === "bottom" ? "launch-success-bottom" : ""}`}>
+      <div className="launch-success">
         <span className="promo-success-check">✓</span>
         <p>You&rsquo;re in! Check your inbox.</p>
         {offer.discount_code && (
@@ -102,10 +99,7 @@ function EmailGate({
   }
 
   return (
-    <form
-      className={`launch-form ${variant === "bottom" ? "launch-form-bottom" : ""}`}
-      onSubmit={handleSubmit}
-    >
+    <form id="launch-optin" className="launch-form" onSubmit={handleSubmit}>
       <input
         type="email"
         placeholder="your@email.com"
@@ -119,7 +113,7 @@ function EmailGate({
         {status === "loading" ? "…" : submitLabel}
       </button>
       {status === "error" && <p className="promo-error launch-form-error">{errMsg}</p>}
-      <p className="launch-hint">No spam. Unsubscribe anytime.</p>
+      <p className="launch-hint">{note}</p>
     </form>
   );
 }
@@ -161,14 +155,17 @@ export function LaunchOffer({ offer }: { offer: Launch }) {
 
   const showCountdown = Boolean(offer.expires_at && timeLeft);
   const hasBody = Boolean(offer.body_md.trim());
-  const formProps = { offer, email, setEmail, status, setStatus, errMsg, setErrMsg };
+  const hasProof = Boolean(offer.proof_md.trim());
+  const title = offer.headline.trim() || offer.product_name || "Exclusive offer";
+  const showProductLine = Boolean(offer.headline.trim() && offer.product_name.trim());
 
   return (
     <div className="launch-offer">
       <section className="launch-hero">
         <div className="launch-hero-copy">
-          <p className="promo-position-label launch-hero-label">{positionLabelText(offer.label_variant)}</p>
-          <h1 className="launch-title">{offer.product_name || "Exclusive offer"}</h1>
+          <p className="promo-position-label launch-hero-label">{launchLabelText(offer.label_variant)}</p>
+          <h1 className="launch-title">{title}</h1>
+          {showProductLine && <p className="launch-product-line">{offer.product_name}</p>}
           {offer.description && <p className="launch-desc">{offer.description}</p>}
 
           {showCountdown && timeLeft && (
@@ -198,7 +195,15 @@ export function LaunchOffer({ offer }: { offer: Launch }) {
           )}
 
           <div className="launch-hero-form">
-            <EmailGate {...formProps} variant="primary" />
+            <EmailGate
+              offer={offer}
+              email={email}
+              setEmail={setEmail}
+              status={status}
+              setStatus={setStatus}
+              errMsg={errMsg}
+              setErrMsg={setErrMsg}
+            />
           </div>
 
           {offer.review_url && (
@@ -209,11 +214,11 @@ export function LaunchOffer({ offer }: { offer: Launch }) {
         </div>
 
         {offer.image_url && (
-          <div className="launch-hero-media" aria-hidden={!offer.product_name}>
+          <div className="launch-hero-media">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={offer.image_url}
-              alt={offer.product_name}
+              alt={offer.product_name || title}
               className="launch-img"
               loading="eager"
               decoding="async"
@@ -222,22 +227,24 @@ export function LaunchOffer({ offer }: { offer: Launch }) {
         )}
       </section>
 
+      {hasProof && (
+        <section className="launch-proof" aria-label="Social proof">
+          <MarkdownContent content={offer.proof_md} />
+        </section>
+      )}
+
       {hasBody && (
         <section className="launch-body" aria-label="About this launch">
           <MarkdownContent content={offer.body_md} />
         </section>
       )}
 
-      {hasBody && status !== "ok" && (
-        <section className="launch-bottom-cta">
-          <h2 className="launch-bottom-title">
-            {offer.discount_code ? "Ready for your exclusive code?" : "Ready for exclusive access?"}
-          </h2>
-          <p className="launch-bottom-sub">
-            Enter your email below — we&rsquo;ll send it instantly. No spam.
-          </p>
-          <EmailGate {...formProps} variant="bottom" />
-        </section>
+      {(hasBody || hasProof) && status !== "ok" && (
+        <p className="launch-jump">
+          <a href="#launch-optin">
+            {offer.discount_code ? "Get my discount ↑" : "Get exclusive access ↑"}
+          </a>
+        </p>
       )}
     </div>
   );

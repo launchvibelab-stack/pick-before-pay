@@ -13,9 +13,11 @@ export const revalidate = 60;
 export async function generateMetadata(): Promise<Metadata> {
   const launch = await getLaunch().catch(() => null);
   const name = launch?.product_name?.trim() || "Exclusive launch";
-  const title = `${name} — Prelaunch offer`;
+  const headline = launch?.headline?.trim();
+  const title = headline ? `${headline} — ${name}` : `${name} — Prelaunch offer`;
   const description =
     launch?.description?.trim() ||
+    launch?.cta_note?.trim() ||
     "Get your exclusive discount or bonus before this launch offer ends.";
   const url = `${siteUrl()}/launch`;
   const image = launch?.image_url || "/logo.png";
@@ -67,7 +69,7 @@ export default async function LaunchPage() {
         </div>
       </main>
       {launch && <ExitIntentPopup offer={launch} />}
-      <SiteFooter />
+      <SiteFooter hideSubscribe />
     </>
   );
 }
