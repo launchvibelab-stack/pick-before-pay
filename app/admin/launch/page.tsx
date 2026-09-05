@@ -22,7 +22,7 @@ export default async function AdminLaunchPage() {
         <a href="/launch" target="_blank" rel="noopener noreferrer">
           /launch
         </a>
-        : thu email + trang prelaunch (headline outcome, proof, body dài). Scorecard footer bị ẩn trên /launch.
+        : snapshot prelaunch — headline + checklist ngắn + email. Không thay sales page.
       </p>
       <LaunchEditor initial={launch} />
     </main>

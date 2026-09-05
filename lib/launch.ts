@@ -64,6 +64,22 @@ export function launchLabelText(variant: LaunchLabelVariant): string {
   return "Exclusive for PickBeforePay readers";
 }
 
+/** Short scannable lines from body_md / proof_md (one idea per line). */
+export function parseLaunchLines(raw: string, max = 5): string[] {
+  return String(raw || "")
+    .split(/\r?\n/)
+    .map((line) =>
+      line
+        .replace(/^#{1,6}\s+/, "")
+        .replace(/^[-*•]\s+/, "")
+        .replace(/^\d+[.)]\s+/, "")
+        .replace(/^\*\*(.+)\*\*$/, "$1")
+        .trim()
+    )
+    .filter(Boolean)
+    .slice(0, max);
+}
+
 function normalizeLabelVariant(v: unknown): LaunchLabelVariant {
   const s = String(v || "").trim().toLowerCase();
   if (

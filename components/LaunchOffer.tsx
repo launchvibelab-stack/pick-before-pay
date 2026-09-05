@@ -1,7 +1,11 @@
 "use client";
 
-import { MarkdownContent } from "@/components/MarkdownContent";
-import { countdownLabelText, launchLabelText, type Launch } from "@/lib/launch";
+import {
+  countdownLabelText,
+  launchLabelText,
+  parseLaunchLines,
+  type Launch
+} from "@/lib/launch";
 import { englishRequiredEmailProps } from "@/lib/formValidation";
 import { useEffect, useRef, useState } from "react";
 
@@ -47,8 +51,8 @@ function EmailGate({
   const note =
     offer.cta_note.trim() ||
     (hasDiscount
-      ? "Join the list — your code is sent instantly. No spam."
-      : "Join the early-access list. No spam.");
+      ? "Code sent instantly. No spam."
+      : "Early access only. No spam.");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -100,18 +104,20 @@ function EmailGate({
 
   return (
     <form id="launch-optin" className="launch-form" onSubmit={handleSubmit}>
-      <input
-        type="email"
-        placeholder="your@email.com"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        disabled={status === "loading"}
-        autoComplete="email"
-        {...englishRequiredEmailProps()}
-      />
-      <button type="submit" className="promo-cta-btn promo-cta-btn-lg" disabled={status === "loading"}>
-        {status === "loading" ? "…" : submitLabel}
-      </button>
+      <div className="launch-form-row">
+        <input
+          type="email"
+          placeholder="your@email.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={status === "loading"}
+          autoComplete="email"
+          {...englishRequiredEmailProps()}
+        />
+        <button type="submit" className="promo-cta-btn promo-cta-btn-lg" disabled={status === "loading"}>
+          {status === "loading" ? "…" : submitLabel}
+        </button>
+      </div>
       {status === "error" && <p className="promo-error launch-form-error">{errMsg}</p>}
       <p className="launch-hint">{note}</p>
     </form>
@@ -154,20 +160,16 @@ export function LaunchOffer({ offer }: { offer: Launch }) {
   }
 
   const showCountdown = Boolean(offer.expires_at && timeLeft);
-  const hasBody = Boolean(offer.body_md.trim());
-  const hasProof = Boolean(offer.proof_md.trim());
+  const highlights = parseLaunchLines(offer.body_md, 5);
+  const proofLines = parseLaunchLines(offer.proof_md, 3);
   const title = offer.headline.trim() || offer.product_name || "Exclusive offer";
   const showProductLine = Boolean(offer.headline.trim() && offer.product_name.trim());
 
   return (
     <div className="launch-offer">
-      <section className="launch-hero">
-        <div className="launch-hero-copy">
+      <section className="launch-panel">
+        <header className="launch-panel-top">
           <p className="promo-position-label launch-hero-label">{launchLabelText(offer.label_variant)}</p>
-          <h1 className="launch-title">{title}</h1>
-          {showProductLine && <p className="launch-product-line">{offer.product_name}</p>}
-          {offer.description && <p className="launch-desc">{offer.description}</p>}
-
           {showCountdown && timeLeft && (
             <div className="promo-countdown-row launch-countdown">
               <span className="promo-countdown-label">{countdownLabelText(offer.countdown_label)}</span>
@@ -193,59 +195,81 @@ export function LaunchOffer({ offer }: { offer: Launch }) {
               </div>
             </div>
           )}
+        </header>
 
-          <div className="launch-hero-form">
-            <EmailGate
-              offer={offer}
-              email={email}
-              setEmail={setEmail}
-              status={status}
-              setStatus={setStatus}
-              errMsg={errMsg}
-              setErrMsg={setErrMsg}
-            />
-          </div>
-
-          {offer.review_url && (
-            <a href={offer.review_url} className="launch-review-link">
-              Prefer to read the full review first →
-            </a>
+        <div className={`launch-panel-main ${offer.image_url ? "has-media" : ""}`}>
+          {offer.image_url && (
+            <div className="launch-hero-media">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={offer.image_url}
+                alt={offer.product_name || title}
+                className="launch-img"
+                loading="eager"
+                decoding="async"
+              />
+            </div>
           )}
+
+          <div className="launch-hero-copy">
+            <h1 className="launch-title">{title}</h1>
+            {showProductLine && <p className="launch-product-line">{offer.product_name}</p>}
+            {offer.description && <p className="launch-desc">{offer.description}</p>}
+
+            {highlights.length > 0 && (
+              <ul className="launch-highlights">
+                {highlights.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            )}
+
+            {proofLines.length > 0 && (
+              <div className="launch-proof-chips" aria-label="Quick facts">
+                {proofLines.map((line) => (
+                  <span key={line} className="launch-proof-chip">
+                    {line}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <div className="launch-hero-form">
+              <EmailGate
+                offer={offer}
+                email={email}
+                setEmail={setEmail}
+                status={status}
+                setStatus={setStatus}
+                errMsg={errMsg}
+                setErrMsg={setErrMsg}
+              />
+            </div>
+
+            <div className="launch-panel-links">
+              {offer.review_url && (
+                <a href={offer.review_url} className="launch-review-link">
+                  Read our review →
+                </a>
+              )}
+              {offer.cta_url && status !== "ok" && (
+                <a
+                  href={offer.cta_url}
+                  className="launch-sales-link"
+                  rel="nofollow sponsored noopener"
+                  target="_blank"
+                >
+                  Full sales page →
+                </a>
+              )}
+            </div>
+          </div>
         </div>
 
-        {offer.image_url && (
-          <div className="launch-hero-media">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={offer.image_url}
-              alt={offer.product_name || title}
-              className="launch-img"
-              loading="eager"
-              decoding="async"
-            />
-          </div>
-        )}
-      </section>
-
-      {hasProof && (
-        <section className="launch-proof" aria-label="Social proof">
-          <MarkdownContent content={offer.proof_md} />
-        </section>
-      )}
-
-      {hasBody && (
-        <section className="launch-body" aria-label="About this launch">
-          <MarkdownContent content={offer.body_md} />
-        </section>
-      )}
-
-      {(hasBody || hasProof) && status !== "ok" && (
-        <p className="launch-jump">
-          <a href="#launch-optin">
-            {offer.discount_code ? "Get my discount ↑" : "Get exclusive access ↑"}
-          </a>
+        <p className="launch-footnote">
+          This page is just your early code — the full pitch lives on the sales page.
         </p>
-      )}
+      </section>
     </div>
   );
 }

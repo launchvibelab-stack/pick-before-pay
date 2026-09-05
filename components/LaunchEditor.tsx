@@ -193,28 +193,28 @@ export function LaunchEditor({ initial }: Props) {
       </label>
 
       <label>
-        Proof block (optional)
+        Quick facts / chips (optional)
         <textarea
-          rows={5}
+          rows={3}
           value={form.proof_md}
           onChange={(e) => update("proof_md", e.target.value)}
-          placeholder={`**412** ready-to-use prompts\n\n> “I sketched a full comic outline in one sitting.” — early reader`}
+          placeholder={"412 prompts\nKid-friendly\nKDP + Etsy ready"}
           className="launch-body-editor"
         />
-        <small className="field-hint">Stat / quote ngắn — hiện giữa hero và body dài.</small>
+        <small className="field-hint">Mỗi dòng = 1 chip. Tối đa 3 dòng hiện ra.</small>
       </label>
 
       <label>
-        Long description (prelaunch body)
+        Highlights (checklist — short)
         <textarea
-          rows={16}
+          rows={6}
           value={form.body_md}
           onChange={(e) => update("body_md", e.target.value)}
-          placeholder={`## How it works\n\n1. …\n2. …\n3. …\n\n## What's included\n\n- …\n\n## Who it's for\n\n…\n\n## Who it's not for\n\n…\n\n## FAQ\n\n**When do I get the code?** …`}
+          placeholder={"Story + characters + image prompts in one go\n412 ready-to-use prompts included\nBuilt for KDP, Etsy, and Gumroad creators"}
           className="launch-body-editor"
         />
         <small className="field-hint">
-          Markdown. Nên có: how it works, what&apos;s included, who it&apos;s for, FAQ ngắn.
+          Mỗi dòng = 1 ý. Tối đa 5. Đừng viết sales page dài — buyer sẽ đọc sales page riêng.
         </small>
       </label>
 
