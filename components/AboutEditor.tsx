@@ -8,8 +8,7 @@ export function AboutEditor({ initial }: { initial: AboutProfile }) {
   const router = useRouter();
   const [form, setForm] = useState<AboutProfile>({
     ...initial,
-    linkedin_url: initial.linkedin_url || "",
-    youtube_url: initial.youtube_url || ""
+    socials: initial.socials || []
   });
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
@@ -33,6 +32,25 @@ export function AboutEditor({ initial }: { initial: AboutProfile }) {
       ...f,
       products: [...f.products, { title: "", url: "", description: "" }]
     }));
+  }
+
+  function updateSocial(i: number, patch: Partial<{ label: string; url: string }>) {
+    setForm((f) => {
+      const socials = [...f.socials];
+      socials[i] = { ...socials[i], ...patch };
+      return { ...f, socials };
+    });
+  }
+
+  function addSocial() {
+    setForm((f) => ({
+      ...f,
+      socials: [...f.socials, { label: "", url: "" }]
+    }));
+  }
+
+  function removeSocial(i: number) {
+    setForm((f) => ({ ...f, socials: f.socials.filter((_, idx) => idx !== i) }));
   }
 
   async function uploadAvatar(file: File) {
@@ -79,8 +97,7 @@ export function AboutEditor({ initial }: { initial: AboutProfile }) {
       }
       setForm({
         ...j,
-        linkedin_url: j.linkedin_url || "",
-        youtube_url: j.youtube_url || ""
+        socials: Array.isArray(j.socials) ? j.socials : []
       });
       setMsg("Saved.");
       router.refresh();
@@ -148,26 +165,36 @@ export function AboutEditor({ initial }: { initial: AboutProfile }) {
       </label>
 
       <h3 className="editor-subhead">Social links</h3>
-      <label>
-        Facebook URL
-        <input value={form.facebook_url} onChange={(e) => update("facebook_url", e.target.value)} />
-      </label>
-      <label>
-        Pinterest URL
-        <input value={form.pinterest_url} onChange={(e) => update("pinterest_url", e.target.value)} />
-      </label>
-      <label>
-        Telegram URL
-        <input value={form.telegram_url} onChange={(e) => update("telegram_url", e.target.value)} />
-      </label>
-      <label>
-        LinkedIn URL
-        <input value={form.linkedin_url || ""} onChange={(e) => update("linkedin_url", e.target.value)} />
-      </label>
-      <label>
-        YouTube URL
-        <input value={form.youtube_url || ""} onChange={(e) => update("youtube_url", e.target.value)} />
-      </label>
+      <p className="field-hint" style={{ marginBottom: 12 }}>
+        Thêm bất kỳ nền tảng nào (Facebook, X, TikTok, Threads…). Chỉ hiện trên About khi có đủ tên + URL.
+      </p>
+      {form.socials.map((s, i) => (
+        <div className="product-editor-row" key={i}>
+          <label>
+            Platform name
+            <input
+              value={s.label}
+              onChange={(e) => updateSocial(i, { label: e.target.value })}
+              placeholder="e.g. TikTok"
+              maxLength={40}
+            />
+          </label>
+          <label>
+            Profile URL
+            <input
+              value={s.url}
+              onChange={(e) => updateSocial(i, { url: e.target.value })}
+              placeholder="https://…"
+            />
+          </label>
+          <button type="button" className="btn-ghost" onClick={() => removeSocial(i)}>
+            Remove
+          </button>
+        </div>
+      ))}
+      <button type="button" className="btn-ghost" onClick={addSocial}>
+        + Add social link
+      </button>
 
       <h3 className="editor-subhead">My products</h3>
 

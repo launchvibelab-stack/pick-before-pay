@@ -39,13 +39,17 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function AboutPage() {
   const profile = await getAboutProfile();
-  const socials = [
-    { label: "Facebook", href: profile.facebook_url },
-    { label: "Pinterest", href: profile.pinterest_url },
-    { label: "Telegram", href: profile.telegram_url },
-    { label: "LinkedIn", href: profile.linkedin_url },
-    { label: "YouTube", href: profile.youtube_url }
-  ].filter((s) => s.href);
+  const socialLinks = (
+    profile.socials?.length
+      ? profile.socials.map((s) => ({ label: s.label, href: s.url }))
+      : [
+          { label: "Facebook", href: profile.facebook_url },
+          { label: "Pinterest", href: profile.pinterest_url },
+          { label: "Telegram", href: profile.telegram_url },
+          { label: "LinkedIn", href: profile.linkedin_url },
+          { label: "YouTube", href: profile.youtube_url }
+        ]
+  ).filter((s) => s.label && s.href);
 
   return (
     <>
@@ -69,12 +73,12 @@ export default async function AboutPage() {
           </div>
         )}
 
-        {socials.length > 0 && (
+        {socialLinks.length > 0 && (
           <section className="about-section">
             <h2>Connect</h2>
             <div className="about-socials">
-              {socials.map((s) => (
-                <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" className="about-social">
+              {socialLinks.map((s) => (
+                <a key={`${s.label}-${s.href}`} href={s.href} target="_blank" rel="noopener noreferrer" className="about-social">
                   {s.label}
                 </a>
               ))}

@@ -1,9 +1,15 @@
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { normalizeSafeHttpsUrl } from "@/lib/urls";
 
 export type AboutProduct = {
   title: string;
   url: string;
   description?: string;
+};
+
+export type AboutSocial = {
+  label: string;
+  url: string;
 };
 
 export type AboutProfile = {
@@ -12,16 +18,26 @@ export type AboutProfile = {
   bio: string;
   avatar_url: string | null;
   profile_image_url: string | null;
+  /** @deprecated kept for storage/SQL mirror; prefer `socials`. */
   facebook_url: string;
   pinterest_url: string;
   telegram_url: string;
   linkedin_url: string;
   youtube_url: string;
+  socials: AboutSocial[];
   products: AboutProduct[];
 };
 
 const BUCKET = "site-config";
 const OBJECT_PATH = "about.json";
+
+const LEGACY_SOCIAL_KEYS = [
+  ["Facebook", "facebook_url"],
+  ["Pinterest", "pinterest_url"],
+  ["Telegram", "telegram_url"],
+  ["LinkedIn", "linkedin_url"],
+  ["YouTube", "youtube_url"]
+] as const;
 
 export const defaultAboutProfile = (): AboutProfile => ({
   name: "PickBeforePay",
@@ -34,8 +50,38 @@ export const defaultAboutProfile = (): AboutProfile => ({
   telegram_url: "",
   linkedin_url: "",
   youtube_url: "",
+  socials: [],
   products: []
 });
+
+function normalizeSocials(row: Record<string, unknown>): AboutSocial[] {
+  if (Array.isArray(row.socials)) {
+    const fromList = (row.socials as AboutSocial[])
+      .map((s) => ({
+        label: String(s?.label || "").trim(),
+        url: String(s?.url || "").trim()
+      }))
+      .filter((s) => s.label && s.url);
+    if (fromList.length) return fromList;
+  }
+
+  return LEGACY_SOCIAL_KEYS.map(([label, key]) => ({
+    label,
+    url: String(row[key] || "").trim()
+  })).filter((s) => s.url);
+}
+
+function legacyFromSocials(socials: AboutSocial[]) {
+  const byLabel = (name: string) =>
+    socials.find((s) => s.label.toLowerCase() === name.toLowerCase())?.url || "";
+  return {
+    facebook_url: byLabel("Facebook"),
+    pinterest_url: byLabel("Pinterest"),
+    telegram_url: byLabel("Telegram"),
+    linkedin_url: byLabel("LinkedIn"),
+    youtube_url: byLabel("YouTube")
+  };
+}
 
 function normalize(row: Record<string, unknown> | null | undefined): AboutProfile {
   const base = defaultAboutProfile();
@@ -43,17 +89,16 @@ function normalize(row: Record<string, unknown> | null | undefined): AboutProfil
   const products = Array.isArray(row.products)
     ? (row.products as AboutProduct[]).filter((p) => p && typeof p.title === "string")
     : [];
+  const socials = normalizeSocials(row);
+  const legacy = legacyFromSocials(socials);
   return {
     name: String(row.name || base.name),
     headline: String(row.headline || base.headline),
     bio: String(row.bio || base.bio),
     avatar_url: row.avatar_url ? String(row.avatar_url) : null,
     profile_image_url: row.profile_image_url ? String(row.profile_image_url) : null,
-    facebook_url: String(row.facebook_url || ""),
-    pinterest_url: String(row.pinterest_url || ""),
-    telegram_url: String(row.telegram_url || ""),
-    linkedin_url: String(row.linkedin_url || ""),
-    youtube_url: String(row.youtube_url || ""),
+    ...legacy,
+    socials,
     products
   };
 }
@@ -123,17 +168,25 @@ export async function getAboutProfile(): Promise<AboutProfile> {
 }
 
 export async function saveAboutProfile(input: AboutProfile): Promise<AboutProfile> {
+  const socials: AboutSocial[] = (input.socials || [])
+    .map((s) => {
+      const label = String(s.label || "").trim();
+      const checked = normalizeSafeHttpsUrl(String(s.url || "").trim(), `${label || "Social"} URL`);
+      if (checked.error) throw new Error(checked.error);
+      return { label, url: checked.url || "" };
+    })
+    .filter((s) => s.label && s.url);
+
+  const legacy = legacyFromSocials(socials);
+
   const profile: AboutProfile = {
     name: input.name.trim() || defaultAboutProfile().name,
     headline: input.headline.trim(),
     bio: input.bio.trim(),
     avatar_url: input.avatar_url?.trim() || null,
     profile_image_url: input.profile_image_url?.trim() || null,
-    facebook_url: (input.facebook_url || "").trim(),
-    pinterest_url: (input.pinterest_url || "").trim(),
-    telegram_url: (input.telegram_url || "").trim(),
-    linkedin_url: (input.linkedin_url || "").trim(),
-    youtube_url: (input.youtube_url || "").trim(),
+    ...legacy,
+    socials,
     products: (input.products || [])
       .map((p) => ({
         title: String(p.title || "").trim(),
@@ -147,11 +200,12 @@ export async function saveAboutProfile(input: AboutProfile): Promise<AboutProfil
 
   // Best-effort sync to SQL table when it exists (optional)
   try {
+    const { socials: _socials, ...sqlRow } = profile;
     await getSupabaseAdmin()
       .from("about_profile")
       .upsert({
         id: 1,
-        ...profile,
+        ...sqlRow,
         updated_at: new Date().toISOString()
       });
   } catch {
