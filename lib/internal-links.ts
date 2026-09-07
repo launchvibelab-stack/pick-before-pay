@@ -179,8 +179,8 @@ export async function syncNicheInternalLinks(opts: {
 
   if (posts.length < 2) {
     // Still strip Related reviews from single-post niches.
+    // Do not bump updated_at — system sync is not an editorial update.
     let updatedSolo = 0;
-    const nowSolo = new Date().toISOString();
     for (const post of posts) {
       let content = post.content;
       if (!content) {
@@ -190,17 +190,13 @@ export async function syncNicheInternalLinks(opts: {
       }
       const next = removeRelatedSection(content);
       if (next === content) continue;
-      const { error: upErr } = await db
-        .from("posts")
-        .update({ content: next, updated_at: nowSolo })
-        .eq("id", post.id);
+      const { error: upErr } = await db.from("posts").update({ content: next }).eq("id", post.id);
       if (!upErr) updatedSolo += 1;
     }
     return updatedSolo;
   }
 
   let updated = 0;
-  const now = new Date().toISOString();
 
   for (const post of posts) {
     let content = post.content;
@@ -223,10 +219,8 @@ export async function syncNicheInternalLinks(opts: {
     const next = applyInternalLinks(content, peers);
     if (next === content) continue;
 
-    const { error: upErr } = await db
-      .from("posts")
-      .update({ content: next, updated_at: now })
-      .eq("id", post.id);
+    // Content-only write: keep editorial Updated date unchanged.
+    const { error: upErr } = await db.from("posts").update({ content: next }).eq("id", post.id);
 
     if (!upErr) updated += 1;
   }
