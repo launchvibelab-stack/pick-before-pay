@@ -17,7 +17,10 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ["lucide-react"]
   },
   async headers() {
-    return [
+    const headers: {
+      source: string;
+      headers: { key: string; value: string }[];
+    }[] = [
       {
         source: "/logo-mark.:ext(png|webp)",
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }]
@@ -27,6 +30,16 @@ const nextConfig: NextConfig = {
         headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }]
       }
     ];
+
+    // Affirm indexing for review posts (helps clear stale GSC "noindex" after publish).
+    if (process.env.VERCEL_ENV !== "preview") {
+      headers.push({
+        source: "/posts/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "index, follow" }]
+      });
+    }
+
+    return headers;
   }
 };
 
