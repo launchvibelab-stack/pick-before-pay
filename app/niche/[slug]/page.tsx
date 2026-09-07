@@ -1,3 +1,4 @@
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Header } from "@/components/Header";
 import { PostCard } from "@/components/PostCard";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -50,6 +51,12 @@ export default async function NichePage({ params }: { params: Promise<{ slug: st
     <>
       <Header />
       <main className="container section" style={{ paddingTop: 56 }}>
+        <Breadcrumbs
+          items={[
+            { label: "Home", href: "/" },
+            { label: niche.name }
+          ]}
+        />
         <div className="section-head">
           <span className="eyebrow">Niche</span>
           <h1>{niche.name}</h1>

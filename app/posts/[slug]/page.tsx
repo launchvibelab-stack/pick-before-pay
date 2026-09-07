@@ -1,5 +1,7 @@
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Header } from "@/components/Header";
 import { MarkdownContent } from "@/components/MarkdownContent";
+import { MoreInNiche } from "@/components/MoreInNiche";
 import { SiteFooter } from "@/components/SiteFooter";
 import { TrackPageview } from "@/components/TrackPageview";
 import { ReadingProgress } from "@/components/ReadingProgress";
@@ -8,7 +10,8 @@ import { VerdictBar } from "@/components/VerdictBar";
 import { YouTubeLite } from "@/components/YouTubeLite";
 import { extractFaqs } from "@/lib/content";
 import { injectInlineCtas } from "@/lib/inlineCta";
-import { getAllPublishedSlugs, getPostBySlug } from "@/lib/posts";
+import { getNicheById } from "@/lib/niches";
+import { getAllPublishedSlugs, getPostBySlug, getPublishedPosts } from "@/lib/posts";
 import { formatEditorScore, scoreStars } from "@/lib/rating";
 import { siteUrl } from "@/lib/seo";
 import { parseYouTubeRef, youtubeThumbUrl, youtubeWatchUrl } from "@/lib/youtube";
@@ -77,6 +80,11 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const post = await getPostBySlug(slug);
   if (!post) notFound();
+
+  const niche = post.niche_id ? await getNicheById(post.niche_id).catch(() => null) : null;
+  const nicheSiblings = niche
+    ? (await getPublishedPosts(niche.id, 8).catch(() => [])).filter((p) => p.id !== post.id).slice(0, 4)
+    : [];
 
   const url = `${siteUrl()}/posts/${post.slug}`;
   const faqs = extractFaqs(post.content);
@@ -192,6 +200,13 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         {videoLd && (
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(videoLd) }} />
         )}
+        <Breadcrumbs
+          items={[
+            { label: "Home", href: "/" },
+            ...(niche ? [{ label: niche.name, href: `/niche/${niche.slug}` }] : []),
+            { label: post.title }
+          ]}
+        />
         <div className="article-meta">
           <span className="category-pill">{post.category}</span>
           <span>
@@ -236,6 +251,9 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
             postId={post.id}
           />
         </article>
+        {niche && (
+          <MoreInNiche nicheName={niche.name} nicheSlug={niche.slug} posts={nicheSiblings} />
+        )}
       </main>
       <VerdictBar
         productName={productName}
