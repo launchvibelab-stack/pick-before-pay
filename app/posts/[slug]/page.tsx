@@ -10,6 +10,7 @@ import { VerdictBar } from "@/components/VerdictBar";
 import { YouTubeLite } from "@/components/YouTubeLite";
 import { extractFaqs } from "@/lib/content";
 import { injectInlineCtas } from "@/lib/inlineCta";
+import { removeRelatedSection } from "@/lib/internal-links";
 import { getNicheById } from "@/lib/niches";
 import { getAllPublishedSlugs, getPostBySlug, getPublishedPosts } from "@/lib/posts";
 import { formatEditorScore, scoreStars } from "@/lib/rating";
@@ -83,7 +84,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
 
   const niche = post.niche_id ? await getNicheById(post.niche_id).catch(() => null) : null;
   const nicheSiblings = niche
-    ? (await getPublishedPosts(niche.id, 8).catch(() => [])).filter((p) => p.id !== post.id).slice(0, 4)
+    ? (await getPublishedPosts(niche.id, 10).catch(() => [])).filter((p) => p.id !== post.id).slice(0, 5)
     : [];
 
   const url = `${siteUrl()}/posts/${post.slug}`;
@@ -246,7 +247,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         {post.youtube_url && <YouTubeLite url={post.youtube_url} title={post.title} />}
         <article>
           <MarkdownContent
-            content={injectInlineCtas(post.content, post.affiliate_url)}
+            content={injectInlineCtas(removeRelatedSection(post.content), post.affiliate_url)}
             affiliateUrl={post.affiliate_url}
             postId={post.id}
           />

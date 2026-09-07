@@ -135,15 +135,13 @@ export function buildRelatedSection(peers: LinkPeer[], limit = RELATED_LIMIT): s
 }
 
 export function applyInternalLinks(content: string, peers: LinkPeer[]): string {
-  const newest = sortPeersNewestFirst(peers);
-  const relatedPeers = newest.slice(0, RELATED_LIMIT);
-  const withInline = injectContextualLinks(content, newest, 3);
-  const base = removeRelatedSection(withInline);
-  const related = buildRelatedSection(relatedPeers, RELATED_LIMIT);
-  return `${base}${related}`.trim();
+  // Related reviews list moved to the post UI ("More in this niche").
+  // Keep only light contextual in-body links; always strip the old markdown block.
+  const withInline = injectContextualLinks(content, sortPeersNewestFirst(peers), 3);
+  return removeRelatedSection(withInline);
 }
 
-/** Rebuild related (+ contextual) links for every published post in a niche. */
+/** Rebuild contextual links for every published post in a niche; strip Related reviews blocks. */
 export async function syncNicheInternalLinks(opts: {
   nicheId: string;
   seedPost?: LinkPeer | null;
@@ -179,7 +177,27 @@ export async function syncNicheInternalLinks(opts: {
 
   posts = sortPeersNewestFirst(posts) as typeof posts;
 
-  if (posts.length < 2) return 0;
+  if (posts.length < 2) {
+    // Still strip Related reviews from single-post niches.
+    let updatedSolo = 0;
+    const nowSolo = new Date().toISOString();
+    for (const post of posts) {
+      let content = post.content;
+      if (!content) {
+        const { data: full } = await db.from("posts").select("content").eq("id", post.id).maybeSingle();
+        content = full?.content || "";
+        if (!content) continue;
+      }
+      const next = removeRelatedSection(content);
+      if (next === content) continue;
+      const { error: upErr } = await db
+        .from("posts")
+        .update({ content: next, updated_at: nowSolo })
+        .eq("id", post.id);
+      if (!upErr) updatedSolo += 1;
+    }
+    return updatedSolo;
+  }
 
   let updated = 0;
   const now = new Date().toISOString();
@@ -203,8 +221,7 @@ export async function syncNicheInternalLinks(opts: {
       }));
 
     const next = applyInternalLinks(content, peers);
-    const relatedChanged = extractRelatedSection(content) !== extractRelatedSection(next);
-    if (next === content && !relatedChanged) continue;
+    if (next === content) continue;
 
     const { error: upErr } = await db
       .from("posts")
