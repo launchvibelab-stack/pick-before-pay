@@ -162,7 +162,16 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       }
     }
 
-    revalidatePublicSurfaces(data.slug, existing.slug);
+    revalidatePublicSurfaces({
+      postSlug: data.slug,
+      previousPostSlug: existing.slug,
+      nicheSlugs: [
+        niche.slug,
+        existing.niche_id && existing.niche_id !== niche_id
+          ? (await getNicheById(existing.niche_id).catch(() => null))?.slug
+          : null
+      ]
+    });
     return NextResponse.json({
       ...data,
       niche_links_updated: nicheSync,
@@ -178,7 +187,16 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         /* ignore */
       }
     }
-    revalidatePublicSurfaces(existing.slug, seo.slug);
+    const prevNiche =
+      existing.niche_id && existing.niche_id !== niche_id
+        ? await getNicheById(existing.niche_id).catch(() => null)
+        : null;
+    revalidatePublicSurfaces({
+      postSlug: existing.slug,
+      previousPostSlug: seo.slug,
+      nicheSlugs: [niche.slug, prevNiche?.slug],
+      home: Boolean(existing.published)
+    });
     return NextResponse.json({
       ...data,
       warning: mergeWarnings(
@@ -234,6 +252,15 @@ export async function DELETE(_: Request, { params }: { params: Promise<{ id: str
     }
   }
 
-  if (existing?.slug) revalidatePublicSurfaces(existing.slug);
+  if (existing?.slug) {
+    const nicheSlug = existing.niche_id
+      ? (await getNicheById(existing.niche_id).catch(() => null))?.slug
+      : null;
+    revalidatePublicSurfaces({
+      postSlug: existing.slug,
+      nicheSlugs: [nicheSlug],
+      home: Boolean(existing.published)
+    });
+  }
   return NextResponse.json({ ok: true });
 }

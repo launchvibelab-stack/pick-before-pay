@@ -8,7 +8,7 @@ import { siteUrl } from "@/lib/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-export const revalidate = 60;
+export const revalidate = 900;
 
 export async function generateMetadata(): Promise<Metadata> {
   const launch = await getLaunch().catch(() => null);

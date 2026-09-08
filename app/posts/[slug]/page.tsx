@@ -20,7 +20,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
-export const revalidate = 600;
+export const revalidate = 3600;
 
 export async function generateStaticParams() {
   try {

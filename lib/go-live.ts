@@ -1,4 +1,5 @@
 import { revalidatePublicSurfaces } from "@/lib/revalidate-public";
+import { getNicheById } from "@/lib/niches";
 import { syncNicheInternalLinks } from "@/lib/seo";
 import { maybeIndexPost } from "@/lib/sinbyte";
 import { getSupabaseAdmin } from "@/lib/supabase";
@@ -61,7 +62,20 @@ export async function runGoLiveSideEffects(opts: {
 
   const indexStatus = index?.index_status ?? opts.previousStatus ?? null;
 
-  revalidatePublicSurfaces(opts.slug, opts.previousSlug);
+  let nicheSlug: string | null = null;
+  if (opts.niche_id) {
+    try {
+      nicheSlug = (await getNicheById(opts.niche_id))?.slug ?? null;
+    } catch {
+      nicheSlug = null;
+    }
+  }
+
+  revalidatePublicSurfaces({
+    postSlug: opts.slug,
+    previousPostSlug: opts.previousSlug,
+    nicheSlugs: [nicheSlug]
+  });
 
   const syndicate = await maybeSyndicateToWordPress({
     id: opts.id,
