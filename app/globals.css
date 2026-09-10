@@ -692,6 +692,8 @@ button, input, textarea, select { font: inherit; }
   }
   .promo-banner-desc {
     font-size: 14px;
+    -webkit-line-clamp: 3;
+    max-width: none;
   }
   .promo-banner-cta {
     width: 100%;
@@ -713,8 +715,9 @@ button, input, textarea, select { font: inherit; }
     font-size: 18px;
   }
   .promo-banner-desc {
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
     font-size: 13px;
+    max-width: none;
   }
   .promo-unit b {
     font-size: 12px;
