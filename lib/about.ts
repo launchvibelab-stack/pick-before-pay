@@ -7,6 +7,8 @@ export type AboutProduct = {
   description?: string;
   /** Marketplace network label, e.g. Warrior+Plus, JVZoo, Launchpad, or custom. */
   marketplace?: string;
+  /** Optional cover image (HTTPS), shown like review cards. */
+  image_url?: string;
 };
 
 export { MARKETPLACE_PRESETS, isPresetMarketplace } from "@/lib/marketplace";
@@ -97,7 +99,8 @@ function normalize(row: Record<string, unknown> | null | undefined): AboutProfil
           title: String(p.title || "").trim(),
           url: String(p.url || "").trim(),
           description: String(p.description || "").trim(),
-          marketplace: String(p.marketplace || "").trim()
+          marketplace: String(p.marketplace || "").trim(),
+          image_url: String(p.image_url || "").trim()
         }))
     : [];
   const socials = normalizeSocials(row);
@@ -204,11 +207,14 @@ export async function saveAboutProfile(input: AboutProfile): Promise<AboutProfil
         const title = String(p.title || "").trim();
         const checked = normalizeSafeHttpsUrl(String(p.url || "").trim(), `${title} URL`);
         if (checked.error || !checked.url) throw new Error(checked.error || `${title} URL is required.`);
+        const image = normalizeSafeHttpsUrl(String(p.image_url || "").trim(), `${title} image`);
+        if (image.error) throw new Error(image.error);
         return {
           title,
           url: checked.url,
           description: String(p.description || "").trim(),
-          marketplace: String(p.marketplace || "").trim()
+          marketplace: String(p.marketplace || "").trim(),
+          image_url: image.url || ""
         };
       })
   };

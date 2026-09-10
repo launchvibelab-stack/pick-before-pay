@@ -14,6 +14,7 @@ export function AboutEditor({ initial }: { initial: AboutProfile }) {
   const [msg, setMsg] = useState("");
   const [uploadingProfile, setUploadingProfile] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingProduct, setUploadingProduct] = useState<number | null>(null);
   const [customMarketplace, setCustomMarketplace] = useState<Record<number, boolean>>(() => {
     const map: Record<number, boolean> = {};
     (initial.products || []).forEach((p, i) => {
@@ -38,8 +39,19 @@ export function AboutEditor({ initial }: { initial: AboutProfile }) {
   function addProduct() {
     setForm((f) => ({
       ...f,
-      products: [...f.products, { title: "", url: "", description: "", marketplace: "" }]
+      products: [...f.products, { title: "", url: "", description: "", marketplace: "", image_url: "" }]
     }));
+  }
+
+  async function uploadProductImage(i: number, file: File) {
+    setUploadingProduct(i);
+    const fd = new FormData();
+    fd.append("file", file);
+    const r = await fetch("/api/upload", { method: "POST", body: fd });
+    const j = await r.json();
+    setUploadingProduct(null);
+    if (!r.ok) return alert(j.error || "Upload failed");
+    updateProduct(i, { image_url: j.url });
   }
 
   function updateSocial(i: number, patch: Partial<{ label: string; url: string }>) {
@@ -251,6 +263,36 @@ export function AboutEditor({ initial }: { initial: AboutProfile }) {
           Boolean((p.marketplace || "").trim() && !isPresetMarketplace(p.marketplace));
         return (
           <div className="product-editor-row" key={i}>
+            <label className="upload">
+              Product image
+              <input
+                type="file"
+                accept="image/*"
+                disabled={uploadingProduct === i}
+                onChange={(e) => e.target.files?.[0] && uploadProductImage(i, e.target.files[0])}
+              />
+              {uploadingProduct === i && <span>Uploading…</span>}
+              {uploadingProduct !== i && p.image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={p.image_url}
+                  alt=""
+                  style={{ aspectRatio: "16/9", objectFit: "cover", borderRadius: 8, marginTop: 6 }}
+                />
+              ) : (
+                uploadingProduct !== i && <span>Optional cover (like review cards)</span>
+              )}
+              {p.image_url && (
+                <button
+                  type="button"
+                  className="btn-ghost"
+                  style={{ marginTop: 8, padding: "4px 10px", fontSize: 12 }}
+                  onClick={() => updateProduct(i, { image_url: "" })}
+                >
+                  Remove image
+                </button>
+              )}
+            </label>
             <label>
               Title
               <input value={p.title} onChange={(e) => updateProduct(i, { title: e.target.value })} />

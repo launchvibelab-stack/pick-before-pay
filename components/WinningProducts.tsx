@@ -1,3 +1,4 @@
+import { ProductCard } from "@/components/ProductCard";
 import type { AboutProduct } from "@/lib/about";
 
 export function WinningProducts({ products }: { products: AboutProduct[] }) {
@@ -10,22 +11,9 @@ export function WinningProducts({ products }: { products: AboutProduct[] }) {
         <h2>My Winning Products</h2>
         <p className="home-products-lead">Tools and offers I stand behind - tap any card to open the offer.</p>
       </div>
-      <div className="about-products-grid home-products-grid">
+      <div className="products-grid home-products-grid">
         {products.map((p) => (
-          <a
-            key={`${p.title}-${p.url}`}
-            href={p.url}
-            className="about-product-tile"
-            target="_blank"
-            rel="nofollow sponsored noopener"
-          >
-            {p.marketplace && <span className="product-marketplace">{p.marketplace}</span>}
-            <span className="about-product-tile-name">{p.title}</span>
-            {p.description && <span className="about-product-tile-desc">{p.description}</span>}
-            <span className="about-product-tile-arrow" aria-hidden>
-              ↗
-            </span>
-          </a>
+          <ProductCard key={`${p.title}-${p.url}`} product={p} />
         ))}
       </div>
     </section>

@@ -1,5 +1,6 @@
 import { AboutAvatar } from "@/components/AboutAvatar";
 import { Header } from "@/components/Header";
+import { ProductCard } from "@/components/ProductCard";
 import { ProfileImageLightbox } from "@/components/ProfileImageLightbox";
 import { SiteFooter } from "@/components/SiteFooter";
 import { TrackPageview } from "@/components/TrackPageview";
@@ -96,24 +97,9 @@ export default async function AboutPage() {
           {profile.products.length === 0 ? (
             <p className="muted-line">Products will appear here once added in the admin About editor.</p>
           ) : (
-            <div className="about-products-grid">
+            <div className="products-grid">
               {profile.products.map((p) => (
-                <a
-                  key={p.url + p.title}
-                  href={p.url}
-                  className="about-product-tile"
-                  target="_blank"
-                  rel="nofollow sponsored noopener"
-                >
-                  {p.marketplace && <span className="product-marketplace">{p.marketplace}</span>}
-                  <span className="about-product-tile-name">{p.title}</span>
-                  {p.description && (
-                    <span className="about-product-tile-desc">{p.description}</span>
-                  )}
-                  <span className="about-product-tile-arrow" aria-hidden>
-                    ↗
-                  </span>
-                </a>
+                <ProductCard key={p.url + p.title} product={p} />
               ))}
             </div>
           )}
