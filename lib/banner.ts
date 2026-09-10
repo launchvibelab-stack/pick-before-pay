@@ -15,6 +15,8 @@ export type Banner = {
   expires_at: string | null;
   discount_code: string | null;
   cta_url: string | null;
+  /** Custom button text; falls back to "Get the deal →" when empty. */
+  cta_label: string;
   review_url: string | null;
   label_variant: BannerLabelVariant;
   countdown_label: BannerCountdownLabel;
@@ -28,10 +30,16 @@ export const defaultBanner = (): Banner => ({
   expires_at: null,
   discount_code: null,
   cta_url: null,
+  cta_label: "",
   review_url: null,
   label_variant: "exclusive_readers",
   countdown_label: "ends_in"
 });
+
+export function bannerCtaLabel(banner: Pick<Banner, "cta_label">): string {
+  const custom = String(banner.cta_label || "").trim();
+  return custom || "Get the deal →";
+}
 
 function normalizeLabelVariant(v: unknown): BannerLabelVariant {
   const s = String(v || "").trim().toLowerCase();
@@ -73,6 +81,7 @@ function normalize(row: Record<string, unknown> | null | undefined): Banner {
     expires_at: row.expires_at ? String(row.expires_at) : null,
     discount_code: row.discount_code ? String(row.discount_code) : null,
     cta_url: row.cta_url ? String(row.cta_url) : null,
+    cta_label: String(row.cta_label || "").trim(),
     review_url: row.review_url ? String(row.review_url) : null,
     label_variant: normalizeLabelVariant(row.label_variant),
     countdown_label: normalizeCountdownLabel(row.countdown_label)
@@ -109,6 +118,7 @@ export async function saveBanner(input: Banner): Promise<{ banner: Banner; warni
     expires_at: input.expires_at || null,
     discount_code: existing.discount_code,
     cta_url: cta.url,
+    cta_label: String(input.cta_label || "").trim().slice(0, 80),
     review_url: existing.review_url,
     label_variant: normalizeLabelVariant(input.label_variant),
     countdown_label: normalizeCountdownLabel(input.countdown_label)
@@ -117,7 +127,7 @@ export async function saveBanner(input: Banner): Promise<{ banner: Banner; warni
   let payload: Record<string, unknown> = { id: 1, ...banner, updated_at: new Date().toISOString() };
   let { error } = await getSupabaseAdmin().from("banners").upsert(payload);
 
-  const optionalCols = ["countdown_label", "review_url", "label_variant"] as const;
+  const optionalCols = ["cta_label", "countdown_label", "review_url", "label_variant"] as const;
   const dropped: string[] = [];
   while (error) {
     const missing = optionalCols.find((col) => isMissingDbColumn(error, col) && col in payload);
@@ -133,6 +143,7 @@ export async function saveBanner(input: Banner): Promise<{ banner: Banner; warni
 
   const saved: Banner = {
     ...banner,
+    cta_label: dropped.includes("cta_label") ? "" : banner.cta_label,
     review_url: dropped.includes("review_url") ? null : banner.review_url,
     countdown_label: dropped.includes("countdown_label") ? "ends_in" : banner.countdown_label,
     label_variant: dropped.includes("label_variant") ? "exclusive_readers" : banner.label_variant
@@ -140,7 +151,7 @@ export async function saveBanner(input: Banner): Promise<{ banner: Banner; warni
 
   const warning =
     dropped.length > 0
-      ? `Saved, but missing DB columns (${dropped.join(", ")}). Run supabase/migration_banner_review_countdown.sql then save again.`
+      ? `Saved, but missing DB columns (${dropped.join(", ")}). Run supabase/migration_banner_cta_label.sql and/or migration_banner_review_countdown.sql then save again.`
       : undefined;
 
   return { banner: saved, warning };

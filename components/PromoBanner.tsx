@@ -1,6 +1,6 @@
 "use client";
 
-import { countdownLabelText, type Banner } from "@/lib/banner";
+import { bannerCtaLabel, countdownLabelText, type Banner } from "@/lib/banner";
 import { useEffect, useRef, useState } from "react";
 
 type TimeLeft = { days: number; hours: number; minutes: number; seconds: number };
@@ -46,7 +46,7 @@ export function PromoBanner({ banner }: { banner: Banner }) {
 
   const showCountdown = Boolean(banner.expires_at && timeLeft);
   const hasImage = Boolean(banner.image_url);
-  const ctaLabel = "Get the deal →";
+  const ctaLabel = bannerCtaLabel(banner);
   const positionLabel =
     banner.label_variant === "featured_launch"
       ? "Featured Launch"

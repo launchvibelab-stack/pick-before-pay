@@ -93,6 +93,7 @@ export function BannerEditor({ initial }: Props) {
         expires_at: j.expires_at || null,
         discount_code: j.discount_code || null,
         cta_url: j.cta_url || null,
+        cta_label: String(j.cta_label || ""),
         review_url: j.review_url || null,
         label_variant: j.label_variant || "exclusive_readers",
         countdown_label: j.countdown_label || "ends_in"
@@ -166,6 +167,18 @@ export function BannerEditor({ initial }: Props) {
           placeholder="https://warriorplus.com/..."
         />
         <small className="field-hint">Nút lớn trên banner homepage. Không có URL thì banner không hiện.</small>
+      </label>
+
+      <label>
+        CTA button text
+        <input
+          type="text"
+          value={form.cta_label || ""}
+          onChange={(e) => update("cta_label", e.target.value)}
+          placeholder="Get PrintableGenie for $17 →"
+          maxLength={80}
+        />
+        <small className="field-hint">Để trống = mặc định “Get the deal →”.</small>
       </label>
 
       <label>
@@ -247,7 +260,7 @@ export function BannerEditor({ initial }: Props) {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={form.image_url} alt="Banner product" />
         ) : (
-          !uploading && <span>Square product image works best (~120px on banner)</span>
+          !uploading && <span>Square product image works best (~100–110px on banner)</span>
         )}
         {form.image_url && (
           <button
