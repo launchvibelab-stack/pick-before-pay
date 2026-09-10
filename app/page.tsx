@@ -90,6 +90,11 @@ export default async function Home() {
           </div>
         </section>
 
+        <section id="latest" className="container section home-latest">
+          {error && <div className="notice">{error}</div>}
+          <RecentReviews posts={posts} />
+        </section>
+
         <section id="niches" className="container section">
           <div className="section-head">
             <span className="eyebrow">Niches</span>
@@ -108,11 +113,6 @@ export default async function Home() {
           ) : (
             !error && <div className="empty">No niches yet. Add niches from the admin panel.</div>
           )}
-        </section>
-
-        <section id="latest" className="container section" style={{ paddingTop: 0 }}>
-          {error && <div className="notice">{error}</div>}
-          <RecentReviews posts={posts} />
         </section>
 
         <section id="about" className="about">
