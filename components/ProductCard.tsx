@@ -27,7 +27,7 @@ export function ProductCard({ product }: { product: AboutProduct }) {
         {product.marketplace && <span className="product-marketplace">{product.marketplace}</span>}
         <span className="product-card-title">{product.title}</span>
         {product.description && <span className="product-card-desc">{product.description}</span>}
-        <span className="product-card-cta">View offer ↗</span>
+        <span className="product-card-cta">Click Here To See More ↗</span>
       </span>
     </a>
   );
