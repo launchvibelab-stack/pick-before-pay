@@ -2,7 +2,13 @@
 
 import Image from "next/image";
 
-export function BrandLogo({ size = 32 }: { size?: number }) {
+const LOGO_W = 168;
+const LOGO_H = 32;
+
+export function BrandLogo({ height = LOGO_H }: { size?: number; height?: number }) {
+  const h = height;
+  const w = Math.round((LOGO_W / LOGO_H) * h);
+
   function goHome(e: React.MouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
     if (window.location.pathname === "/" && !window.location.hash) {
@@ -15,16 +21,14 @@ export function BrandLogo({ size = 32 }: { size?: number }) {
   return (
     <a href="/" className="brand" aria-label="PickBeforePay home" onClick={goHome}>
       <Image
-        src="/logo-mark.png"
+        src="/logo-full.png"
         alt="PickBeforePay"
-        width={size}
-        height={size}
+        width={w}
+        height={h}
         className="brand-logo"
         priority
-        sizes={`${size}px`}
+        sizes={`${w}px`}
       />
-      <span>Pick</span>
-      <b>BeforePay</b>
     </a>
   );
 }

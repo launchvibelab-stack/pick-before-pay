@@ -26,6 +26,10 @@ const nextConfig: NextConfig = {
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }]
       },
       {
+        source: "/logo-full.:ext(png|webp)",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }]
+      },
+      {
         source: "/:path(favicon.ico|icon.png|apple-touch-icon.png|logo.png)",
         headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }]
       }

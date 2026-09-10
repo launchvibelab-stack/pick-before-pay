@@ -740,19 +740,21 @@ button, input, textarea, select { font: inherit; }
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 17px;
-  font-weight: 650;
-  letter-spacing: -0.03em;
+  gap: 0;
+  line-height: 0;
 }
 .brand-logo {
-  width: 32px;
+  width: auto;
   height: 32px;
+  max-width: min(200px, 52vw);
   object-fit: contain;
   flex-shrink: 0;
 }
-.brand span { color: var(--text); }
-.brand b { color: var(--text); font-weight: 650; }
+@media (max-width: 420px) {
+  .brand-logo {
+    height: 28px;
+  }
+}
 .nav-wrap nav,
 .admin-header nav {
   display: flex;
