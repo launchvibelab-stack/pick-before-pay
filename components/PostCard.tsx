@@ -21,6 +21,9 @@ export function PostCard({ post }: { post: Post }) {
       </Link>
       <div className="post-body">
         <span className="category-pill">{post.category || "Review"}</span>
+        {post.marketplace?.trim() && (
+          <span className="product-marketplace post-marketplace">{post.marketplace.trim()}</span>
+        )}
         {typeof post.editor_score === "number" && post.editor_score >= 1 && (
           <span className="score-pill">{Number(post.editor_score).toFixed(1)}/5</span>
         )}

@@ -2,11 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MARKETPLACE_PRESETS, type AboutProduct, type AboutProfile } from "@/lib/about";
-
-function isPresetMarketplace(marketplace?: string) {
-  return (MARKETPLACE_PRESETS as readonly string[]).includes((marketplace || "").trim());
-}
+import { MARKETPLACE_PRESETS, isPresetMarketplace, type AboutProduct, type AboutProfile } from "@/lib/about";
 
 export function AboutEditor({ initial }: { initial: AboutProfile }) {
   const router = useRouter();

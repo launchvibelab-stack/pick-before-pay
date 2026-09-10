@@ -18,6 +18,7 @@ export type Post = {
   niche_id: string | null;
   focus_keyword: string;
   affiliate_url: string | null;
+  marketplace?: string | null;
   meta_title: string;
   meta_description: string;
   cover_url: string | null;

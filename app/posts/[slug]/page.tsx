@@ -210,6 +210,9 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         />
         <div className="article-meta">
           <span className="category-pill">{post.category}</span>
+          {post.marketplace?.trim() && (
+            <span className="product-marketplace post-marketplace">{post.marketplace.trim()}</span>
+          )}
           <span>
             {post.updated_at && post.updated_at !== post.created_at
               ? `Updated ${new Date(post.updated_at).toLocaleDateString("en-US")}`

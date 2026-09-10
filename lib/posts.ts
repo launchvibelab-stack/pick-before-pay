@@ -3,14 +3,16 @@ import type { Post } from "@/lib/types";
 import { cache } from "react";
 
 const LIST_FIELDS =
-  "id, title, slug, excerpt, category, cover_url, created_at, focus_keyword, niche_id, published, editor_score";
+  "id, title, slug, excerpt, category, cover_url, created_at, focus_keyword, niche_id, published, editor_score, marketplace";
 
 const DETAIL_FIELDS =
-  "id, title, slug, excerpt, content, category, cover_url, created_at, updated_at, focus_keyword, niche_id, affiliate_url, meta_title, meta_description, published, editor_score, youtube_url";
+  "id, title, slug, excerpt, content, category, cover_url, created_at, updated_at, focus_keyword, niche_id, affiliate_url, marketplace, meta_title, meta_description, published, editor_score, youtube_url";
 
-const LIST_FIELDS_LEGACY = LIST_FIELDS.replace(", editor_score", "");
+const LIST_FIELDS_NO_MARKETPLACE = LIST_FIELDS.replace(", marketplace", "");
+const LIST_FIELDS_LEGACY = LIST_FIELDS_NO_MARKETPLACE.replace(", editor_score", "");
 const DETAIL_FIELDS_NO_YOUTUBE = DETAIL_FIELDS.replace(", youtube_url", "");
-const DETAIL_FIELDS_LEGACY = DETAIL_FIELDS_NO_YOUTUBE.replace(", editor_score", "");
+const DETAIL_FIELDS_NO_MARKETPLACE = DETAIL_FIELDS_NO_YOUTUBE.replace(", marketplace", "");
+const DETAIL_FIELDS_LEGACY = DETAIL_FIELDS_NO_MARKETPLACE.replace(", editor_score", "");
 
 export function isMissingDbColumn(
   error: { code?: string; message?: string } | null | undefined,
@@ -41,6 +43,16 @@ export async function getPublishedPosts(nicheId?: string, limit?: number): Promi
   };
 
   const first = await run(LIST_FIELDS);
+  if (isMissingDbColumn(first.error, "marketplace")) {
+    const second = await run(LIST_FIELDS_NO_MARKETPLACE);
+    if (isMissingDbColumn(second.error, "editor_score")) {
+      const third = await run(LIST_FIELDS_LEGACY);
+      if (third.error) throw third.error;
+      return (third.data || []) as unknown as Post[];
+    }
+    if (second.error) throw second.error;
+    return (second.data || []) as unknown as Post[];
+  }
   if (isMissingDbColumn(first.error, "editor_score")) {
     const second = await run(LIST_FIELDS_LEGACY);
     if (second.error) throw second.error;
@@ -59,6 +71,9 @@ export const getPostBySlug = cache(async (slug: string): Promise<Post | null> =>
   let result = await run(DETAIL_FIELDS);
   if (isMissingDbColumn(result.error, "youtube_url")) {
     result = await run(DETAIL_FIELDS_NO_YOUTUBE);
+  }
+  if (isMissingDbColumn(result.error, "marketplace")) {
+    result = await run(DETAIL_FIELDS_NO_MARKETPLACE);
   }
   if (isMissingDbColumn(result.error, "editor_score")) {
     result = await run(DETAIL_FIELDS_LEGACY);

@@ -1,5 +1,6 @@
 import { isAdmin } from "@/lib/auth";
 import { mergeWarnings, parseScheduledAt, runGoLiveSideEffects } from "@/lib/go-live";
+import { normalizeMarketplace } from "@/lib/marketplace";
 import { getNicheById } from "@/lib/niches";
 import { isMissingDbColumn } from "@/lib/posts";
 import { parseEditorScore } from "@/lib/rating";
@@ -10,6 +11,14 @@ import type { IndexStatus } from "@/lib/types";
 import { normalizeSafeHttpsUrl } from "@/lib/urls";
 import { normalizeYoutubeUrl } from "@/lib/youtube";
 import { NextResponse } from "next/server";
+
+type PostPayload = Record<string, unknown>;
+
+function stripColumns(payload: PostPayload, columns: string[]) {
+  const next = { ...payload };
+  for (const col of columns) delete next[col];
+  return next;
+}
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await isAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -31,6 +40,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const aff = normalizeSafeHttpsUrl(b.affiliate_url, "Affiliate URL");
   if (aff.error) return NextResponse.json({ error: aff.error }, { status: 400 });
   const affiliate_url = aff.url;
+  const marketplace = normalizeMarketplace(b.marketplace);
   const cover =
     b.cover_url !== undefined
       ? normalizeSafeHttpsUrl(b.cover_url, "Cover image URL")
@@ -89,7 +99,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const goingLive = published && !existing.published;
   const liveAt = goingLive ? new Date().toISOString() : null;
 
-  const payload = {
+  const payload: PostPayload = {
     title,
     slug: seo.slug,
     excerpt: seo.excerpt,
@@ -98,6 +108,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     niche_id,
     focus_keyword,
     affiliate_url,
+    marketplace,
     meta_title: seo.meta_title,
     meta_description: seo.meta_description,
     cover_url,
@@ -115,25 +126,37 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     updated_at: new Date().toISOString()
   };
 
+  let attempt = payload;
   let { data, error } = await getSupabaseAdmin()
     .from("posts")
-    .update(payload)
+    .update(attempt)
     .eq("id", id)
     .select()
     .single();
-  let youtubeSkipped = false;
-  if (isMissingDbColumn(error, "youtube_url")) {
-    const { youtube_url: _omit, ...rest } = payload;
-    const retry = await getSupabaseAdmin().from("posts").update(rest).eq("id", id).select().single();
+  const warnings: string[] = [];
+  if (isMissingDbColumn(error, "marketplace")) {
+    attempt = stripColumns(attempt, ["marketplace"]);
+    const retry = await getSupabaseAdmin().from("posts").update(attempt).eq("id", id).select().single();
     data = retry.data;
     error = retry.error;
-    youtubeSkipped = Boolean(youtube_url);
+    if (!error && marketplace) {
+      warnings.push(
+        "Saved without marketplace. Run supabase/migration_marketplace.sql in the Supabase SQL editor."
+      );
+    }
+  }
+  if (isMissingDbColumn(error, "youtube_url")) {
+    attempt = stripColumns(attempt, ["youtube_url"]);
+    const retry = await getSupabaseAdmin().from("posts").update(attempt).eq("id", id).select().single();
+    data = retry.data;
+    error = retry.error;
+    if (!error && youtube_url) {
+      warnings.push("Saved without video. Run supabase/migration_youtube.sql in the Supabase SQL editor.");
+    }
   }
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   if (!data) return NextResponse.json({ error: "Save failed" }, { status: 400 });
-  const youtubeWarning = youtubeSkipped
-    ? "Saved without video. Run supabase/migration_youtube.sql in the Supabase SQL editor."
-    : undefined;
+  const columnWarning = warnings.length ? warnings.join(" ") : undefined;
 
   // Niche sync when already live, or unpublish/move niche
   if (published && !goingLive) {
@@ -175,7 +198,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     return NextResponse.json({
       ...data,
       niche_links_updated: nicheSync,
-      warning: youtubeWarning
+      warning: columnWarning
     });
   }
 
@@ -201,7 +224,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       ...data,
       warning: mergeWarnings(
         scheduled_at ? `Scheduled for ${new Date(scheduled_at).toLocaleString()}` : undefined,
-        youtubeWarning
+        columnWarning
       )
     });
   }
@@ -224,7 +247,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   return NextResponse.json({
     ...data,
     index_status: side.index_status ?? data.index_status,
-    warning: mergeWarnings(side.warning, youtubeWarning),
+    warning: mergeWarnings(side.warning, columnWarning),
     wordpress_posted: side.wordpress_posted,
     wordpress_post_url: side.wordpress_post_url,
     niche_links_updated: side.niche_links_updated

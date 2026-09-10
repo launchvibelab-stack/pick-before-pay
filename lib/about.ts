@@ -9,7 +9,7 @@ export type AboutProduct = {
   marketplace?: string;
 };
 
-export const MARKETPLACE_PRESETS = ["Warrior+Plus", "JVZoo", "Launchpad", "ClickBank"] as const;
+export { MARKETPLACE_PRESETS, isPresetMarketplace } from "@/lib/marketplace";
 
 export type AboutSocial = {
   label: string;

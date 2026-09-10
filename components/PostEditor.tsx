@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { MARKETPLACE_PRESETS, isPresetMarketplace } from "@/lib/marketplace";
 import type { Niche, Post } from "@/lib/types";
 import { slugify } from "@/lib/slugify";
 
@@ -33,8 +34,14 @@ export function PostEditor({ niches, post }: Props) {
   const [slugTouched, setSlugTouched] = useState(Boolean(post?.slug));
   const [youtubeUrl, setYoutubeUrl] = useState(post?.youtube_url || "");
   const [scheduledDate, setScheduledDate] = useState(toDateInputValue(post?.scheduled_at));
+  const [marketplace, setMarketplace] = useState((post?.marketplace || "").trim());
+  const [customMarketplace, setCustomMarketplace] = useState(() => {
+    const m = (post?.marketplace || "").trim();
+    return Boolean(m && !isPresetMarketplace(m));
+  });
 
   const minDate = useMemo(() => todayDateInputValue(), []);
+  const marketplaceSelect = customMarketplace ? "__custom__" : marketplace;
 
   async function upload(file: File) {
     const fd = new FormData();
@@ -65,6 +72,7 @@ export function PostEditor({ niches, post }: Props) {
       niche_id: String(fd.get("niche_id") || ""),
       focus_keyword: String(fd.get("focus_keyword") || ""),
       affiliate_url: String(fd.get("affiliate_url") || ""),
+      marketplace,
       cover_url: cover,
       editor_score: fd.get("editor_score") ? Number(fd.get("editor_score")) : null,
       youtube_url: youtubeUrl,
@@ -245,6 +253,42 @@ export function PostEditor({ niches, post }: Props) {
           <code>[Get started](YOUR_AFFILIATE_LINK)</code>). Other links stay normal text links.
         </small>
       </label>
+
+      <label>
+        Marketplace
+        <select
+          value={marketplaceSelect}
+          onChange={(e) => {
+            const v = e.target.value;
+            if (v === "__custom__") {
+              setCustomMarketplace(true);
+              if (isPresetMarketplace(marketplace)) setMarketplace("");
+              return;
+            }
+            setCustomMarketplace(false);
+            setMarketplace(v);
+          }}
+        >
+          <option value="">None</option>
+          {MARKETPLACE_PRESETS.map((name) => (
+            <option key={name} value={name}>
+              {name}
+            </option>
+          ))}
+          <option value="__custom__">Custom…</option>
+        </select>
+        <small className="field-hint">Optional network label shown on cards and the review page.</small>
+      </label>
+      {customMarketplace && (
+        <label>
+          Custom marketplace
+          <input
+            value={marketplace}
+            placeholder="e.g. AppSumo"
+            onChange={(e) => setMarketplace(e.target.value)}
+          />
+        </label>
+      )}
 
       <div className="schedule-box">
         <label>

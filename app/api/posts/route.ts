@@ -1,13 +1,22 @@
 import { isAdmin } from "@/lib/auth";
 import { mergeWarnings, parseScheduledAt, runGoLiveSideEffects } from "@/lib/go-live";
+import { normalizeMarketplace } from "@/lib/marketplace";
 import { getNicheById } from "@/lib/niches";
 import { isMissingDbColumn } from "@/lib/posts";
 import { parseEditorScore } from "@/lib/rating";
-import { applySeoPipeline, syncNicheInternalLinks } from "@/lib/seo";
+import { applySeoPipeline } from "@/lib/seo";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { normalizeSafeHttpsUrl } from "@/lib/urls";
 import { normalizeYoutubeUrl } from "@/lib/youtube";
 import { NextResponse } from "next/server";
+
+type PostPayload = Record<string, unknown>;
+
+function stripColumns(payload: PostPayload, columns: string[]) {
+  const next = { ...payload };
+  for (const col of columns) delete next[col];
+  return next;
+}
 
 export async function POST(req: Request) {
   if (!(await isAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -20,6 +29,7 @@ export async function POST(req: Request) {
   const aff = normalizeSafeHttpsUrl(b.affiliate_url, "Affiliate URL");
   if (aff.error) return NextResponse.json({ error: aff.error }, { status: 400 });
   const affiliate_url = aff.url;
+  const marketplace = normalizeMarketplace(b.marketplace);
   const cover = normalizeSafeHttpsUrl(b.cover_url, "Cover image URL");
   if (cover.error) return NextResponse.json({ error: cover.error }, { status: 400 });
   const cover_url = cover.url;
@@ -69,7 +79,7 @@ export async function POST(req: Request) {
     niche_id
   });
 
-  const payload = {
+  const payload: PostPayload = {
     title,
     slug: seo.slug,
     excerpt: seo.excerpt,
@@ -78,6 +88,7 @@ export async function POST(req: Request) {
     niche_id,
     focus_keyword,
     affiliate_url,
+    marketplace,
     meta_title: seo.meta_title,
     meta_description: seo.meta_description,
     cover_url,
@@ -89,19 +100,35 @@ export async function POST(req: Request) {
     updated_at: new Date().toISOString()
   };
 
-  let { data, error } = await getSupabaseAdmin().from("posts").insert(payload).select().single();
-  let youtubeWarning: string | undefined;
+  let attempt = payload;
+  let { data, error } = await getSupabaseAdmin().from("posts").insert(attempt).select().single();
+  const warnings: string[] = [];
+
+  if (isMissingDbColumn(error, "marketplace")) {
+    attempt = stripColumns(attempt, ["marketplace"]);
+    const retry = await getSupabaseAdmin().from("posts").insert(attempt).select().single();
+    data = retry.data;
+    error = retry.error;
+    if (!error && marketplace) {
+      warnings.push(
+        "Saved without marketplace. Run supabase/migration_marketplace.sql in the Supabase SQL editor."
+      );
+    }
+  }
   if (isMissingDbColumn(error, "youtube_url")) {
-    const { youtube_url: _omit, ...rest } = payload;
-    const retry = await getSupabaseAdmin().from("posts").insert(rest).select().single();
+    attempt = stripColumns(attempt, ["youtube_url"]);
+    const retry = await getSupabaseAdmin().from("posts").insert(attempt).select().single();
     data = retry.data;
     error = retry.error;
     if (!error && youtube_url) {
-      youtubeWarning = "Saved without video. Run supabase/migration_youtube.sql in the Supabase SQL editor.";
+      warnings.push("Saved without video. Run supabase/migration_youtube.sql in the Supabase SQL editor.");
     }
   }
+
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   if (!data) return NextResponse.json({ error: "Save failed" }, { status: 400 });
+
+  const columnWarning = warnings.length ? warnings.join(" ") : undefined;
 
   if (!published) {
     return NextResponse.json(
@@ -109,7 +136,7 @@ export async function POST(req: Request) {
         ...data,
         warning: mergeWarnings(
           scheduled_at ? `Scheduled for ${new Date(scheduled_at).toISOString()}` : undefined,
-          youtubeWarning
+          columnWarning
         )
       },
       { status: 201 }
@@ -134,7 +161,7 @@ export async function POST(req: Request) {
     {
       ...data,
       index_status: side.index_status ?? data.index_status,
-      warning: mergeWarnings(side.warning, youtubeWarning),
+      warning: mergeWarnings(side.warning, columnWarning),
       wordpress_posted: side.wordpress_posted,
       wordpress_post_url: side.wordpress_post_url,
       niche_links_updated: side.niche_links_updated

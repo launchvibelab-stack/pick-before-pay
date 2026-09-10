@@ -1121,6 +1121,10 @@ button, input, textarea, select { font: inherit; }
   font-size: 12px;
   font-weight: 700;
 }
+.post-body .post-marketplace {
+  margin-left: 8px;
+  vertical-align: middle;
+}
 .post-body h2 {
   font-size: 18px;
   line-height: 1.3;

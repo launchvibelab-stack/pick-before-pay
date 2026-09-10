@@ -18,6 +18,7 @@ create table if not exists public.posts (
   niche_id uuid references public.niches(id) on delete set null,
   focus_keyword text not null default '',
   affiliate_url text,
+  marketplace text not null default '',
   meta_title text not null default '',
   meta_description text not null default '',
   cover_url text,
