@@ -75,7 +75,16 @@ export function PromoBanner({ banner }: { banner: Banner }) {
               <span className="promo-fire">🔥</span> {banner.product_name}
             </p>
           )}
-          {banner.description && <p className="promo-banner-desc">{banner.description}</p>}
+          {banner.description && (
+            <p className="promo-banner-desc">
+              {banner.description.split(/\r?\n/).map((line, i, lines) => (
+                <span key={i}>
+                  {line}
+                  {i < lines.length - 1 ? <br /> : null}
+                </span>
+              ))}
+            </p>
+          )}
 
           {showCountdown && timeLeft && (
             <div className="promo-countdown-row">
