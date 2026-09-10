@@ -28,8 +28,13 @@ export function RecentReviews({ posts }: { posts: Post[] }) {
   return (
     <>
       <div className="section-head reviews-head">
-        <span className="eyebrow">Latest</span>
-        <h2>Recent reviews</h2>
+        <span className="eyebrow">Recent reviews</span>
+        <h1 className="home-reviews-title">
+          Reviews that help you <em>pick before you pay.</em>
+        </h1>
+        <p className="home-reviews-lead">
+          Clear niche reviews and practical comparisons - so you buy with confidence.
+        </p>
         <div className="reviews-search">
           <label htmlFor="review-search">Search reviews</label>
           <div className="reviews-search-field">

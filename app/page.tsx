@@ -9,7 +9,6 @@ import { getPublishedPosts } from "@/lib/posts";
 import { siteUrl } from "@/lib/seo";
 import type { Niche, Post } from "@/lib/types";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 
 export const revalidate = 1800;
@@ -55,41 +54,6 @@ export default async function Home() {
       <Header />
       {banner && <PromoBanner banner={banner} />}
       <main>
-        <section className="hero">
-          <div className="container">
-            <div className="hero-inner">
-              <div className="hero-brand">
-                <Image
-                  src="/logo-mark.png"
-                  alt=""
-                  width={28}
-                  height={28}
-                  className="hero-brand-logo"
-                  priority
-                  sizes="28px"
-                />
-                PickBeforePay
-              </div>
-              <h1>
-                Reviews that help you
-                <br />
-                <em>pick before you pay.</em>
-              </h1>
-              <p className="hero-lead">
-                Clear niche reviews, practical comparisons, and no hype - so you buy with confidence.
-              </p>
-              <div className="hero-actions">
-                <a href="#latest" className="primary-btn">
-                  Browse reviews
-                </a>
-                <a href="#niches" className="btn-ghost">
-                  Explore niches
-                </a>
-              </div>
-            </div>
-          </div>
-        </section>
-
         <section id="latest" className="container section home-latest">
           {error && <div className="notice">{error}</div>}
           <RecentReviews posts={posts} />
