@@ -3,11 +3,12 @@ import { PromoBanner } from "@/components/PromoBanner";
 import { RecentReviews } from "@/components/RecentReviews";
 import { SiteFooter } from "@/components/SiteFooter";
 import { TrackPageview } from "@/components/TrackPageview";
+import { WinningProducts } from "@/components/WinningProducts";
+import { getAboutProfile } from "@/lib/about";
 import { getBanner } from "@/lib/banner";
-import { getNiches } from "@/lib/niches";
 import { getPublishedPosts } from "@/lib/posts";
 import { siteUrl } from "@/lib/seo";
-import type { Niche, Post } from "@/lib/types";
+import type { Post } from "@/lib/types";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -39,11 +40,11 @@ export const metadata: Metadata = {
 
 export default async function Home() {
   let posts: Post[] = [];
-  let niches: Niche[] = [];
   let error = "";
   const banner = await getBanner().catch(() => null);
+  const about = await getAboutProfile().catch(() => null);
   try {
-    [posts, niches] = await Promise.all([getPublishedPosts(), getNiches()]);
+    posts = await getPublishedPosts();
   } catch {
     error = "Supabase is not connected. Add environment variables and run schema.sql.";
   }
@@ -59,25 +60,7 @@ export default async function Home() {
           <RecentReviews posts={posts} />
         </section>
 
-        <section id="niches" className="container section">
-          <div className="section-head">
-            <span className="eyebrow">Niches</span>
-            <h2>Choose a focus. Dig deeper.</h2>
-          </div>
-          {niches.length > 0 ? (
-            <div className="categories">
-              {niches.map((n, i) => (
-                <Link className="category-card" key={n.id} href={`/niche/${n.slug}`}>
-                  <span>{String(i + 1).padStart(2, "0")}</span>
-                  <h3>{n.name}</h3>
-                  <p>{n.description || "Reviews, comparisons, and practical guides."}</p>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            !error && <div className="empty">No niches yet. Add niches from the admin panel.</div>
-          )}
-        </section>
+        <WinningProducts products={about?.products || []} />
 
         <section id="about" className="about">
           <div className="container">

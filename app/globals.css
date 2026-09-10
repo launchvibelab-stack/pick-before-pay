@@ -1541,6 +1541,36 @@ footer,
   text-decoration: none;
   transition: border-color 0.15s, transform 0.15s, background 0.15s;
   overflow: hidden;
+  position: relative;
+}
+.product-marketplace {
+  display: inline-block;
+  align-self: flex-start;
+  margin-bottom: 6px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  color: var(--focus);
+  background: color-mix(in srgb, var(--focus) 12%, transparent);
+  line-height: 1.3;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.home-products-lead {
+  margin: 8px 0 0;
+  color: var(--muted);
+  max-width: 42rem;
+}
+.home-products-grid {
+  margin-top: 22px;
+}
+.home-products .about-product-tile {
+  aspect-ratio: auto;
+  min-height: 132px;
 }
 .about-product-tile:hover {
   border-color: var(--line-strong);

@@ -5,7 +5,11 @@ export type AboutProduct = {
   title: string;
   url: string;
   description?: string;
+  /** Marketplace network label, e.g. Warrior+Plus, JVZoo, Launchpad, or custom. */
+  marketplace?: string;
 };
+
+export const MARKETPLACE_PRESETS = ["Warrior+Plus", "JVZoo", "Launchpad", "ClickBank"] as const;
 
 export type AboutSocial = {
   label: string;
@@ -87,7 +91,14 @@ function normalize(row: Record<string, unknown> | null | undefined): AboutProfil
   const base = defaultAboutProfile();
   if (!row) return base;
   const products = Array.isArray(row.products)
-    ? (row.products as AboutProduct[]).filter((p) => p && typeof p.title === "string")
+    ? (row.products as AboutProduct[])
+        .filter((p) => p && typeof p.title === "string")
+        .map((p) => ({
+          title: String(p.title || "").trim(),
+          url: String(p.url || "").trim(),
+          description: String(p.description || "").trim(),
+          marketplace: String(p.marketplace || "").trim()
+        }))
     : [];
   const socials = normalizeSocials(row);
   const legacy = legacyFromSocials(socials);
@@ -188,12 +199,18 @@ export async function saveAboutProfile(input: AboutProfile): Promise<AboutProfil
     ...legacy,
     socials,
     products: (input.products || [])
-      .map((p) => ({
-        title: String(p.title || "").trim(),
-        url: String(p.url || "").trim(),
-        description: String(p.description || "").trim()
-      }))
-      .filter((p) => p.title && p.url)
+      .filter((p) => String(p.title || "").trim() && String(p.url || "").trim())
+      .map((p) => {
+        const title = String(p.title || "").trim();
+        const checked = normalizeSafeHttpsUrl(String(p.url || "").trim(), `${title} URL`);
+        if (checked.error || !checked.url) throw new Error(checked.error || `${title} URL is required.`);
+        return {
+          title,
+          url: checked.url,
+          description: String(p.description || "").trim(),
+          marketplace: String(p.marketplace || "").trim()
+        };
+      })
   };
 
   await writeToStorage(profile);

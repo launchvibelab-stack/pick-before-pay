@@ -14,6 +14,7 @@ export async function PUT(req: Request) {
   try {
     const saved = await saveAboutProfile(body);
     revalidatePath("/about");
+    revalidatePath("/");
     return NextResponse.json(saved);
   } catch (err) {
     return NextResponse.json(

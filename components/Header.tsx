@@ -8,8 +8,8 @@ export function Header() {
         <BrandLogo />
         <nav>
           <Link href="/">Home</Link>
-          <Link href="/#niches" prefetch={false}>
-            Niches
+          <Link href="/#products" prefetch={false}>
+            Products
           </Link>
           <Link href="/#latest" prefetch={false}>
             Reviews

@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { AboutProduct, AboutProfile } from "@/lib/about";
+import { MARKETPLACE_PRESETS, type AboutProduct, type AboutProfile } from "@/lib/about";
+
+function isPresetMarketplace(marketplace?: string) {
+  return (MARKETPLACE_PRESETS as readonly string[]).includes((marketplace || "").trim());
+}
 
 export function AboutEditor({ initial }: { initial: AboutProfile }) {
   const router = useRouter();
@@ -14,6 +18,14 @@ export function AboutEditor({ initial }: { initial: AboutProfile }) {
   const [msg, setMsg] = useState("");
   const [uploadingProfile, setUploadingProfile] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [customMarketplace, setCustomMarketplace] = useState<Record<number, boolean>>(() => {
+    const map: Record<number, boolean> = {};
+    (initial.products || []).forEach((p, i) => {
+      const m = (p.marketplace || "").trim();
+      if (m && !isPresetMarketplace(m)) map[i] = true;
+    });
+    return map;
+  });
 
   function update<K extends keyof AboutProfile>(key: K, value: AboutProfile[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -30,7 +42,7 @@ export function AboutEditor({ initial }: { initial: AboutProfile }) {
   function addProduct() {
     setForm((f) => ({
       ...f,
-      products: [...f.products, { title: "", url: "", description: "" }]
+      products: [...f.products, { title: "", url: "", description: "", marketplace: "" }]
     }));
   }
 
@@ -77,6 +89,15 @@ export function AboutEditor({ initial }: { initial: AboutProfile }) {
 
   function removeProduct(i: number) {
     setForm((f) => ({ ...f, products: f.products.filter((_, idx) => idx !== i) }));
+    setCustomMarketplace((prev) => {
+      const next: Record<number, boolean> = {};
+      Object.entries(prev).forEach(([key, val]) => {
+        const idx = Number(key);
+        if (idx < i) next[idx] = val;
+        if (idx > i) next[idx - 1] = val;
+      });
+      return next;
+    });
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -228,28 +249,69 @@ export function AboutEditor({ initial }: { initial: AboutProfile }) {
           </button>
         )}
       </label>
-      {form.products.map((p, i) => (
-        <div className="product-editor-row" key={i}>
-          <label>
-            Title
-            <input value={p.title} onChange={(e) => updateProduct(i, { title: e.target.value })} />
-          </label>
-          <label>
-            URL
-            <input value={p.url} onChange={(e) => updateProduct(i, { url: e.target.value })} />
-          </label>
-          <label>
-            Short description
-            <input
-              value={p.description || ""}
-              onChange={(e) => updateProduct(i, { description: e.target.value })}
-            />
-          </label>
-          <button type="button" className="btn-ghost" onClick={() => removeProduct(i)}>
-            Remove
-          </button>
-        </div>
-      ))}
+      {form.products.map((p, i) => {
+        const useCustom =
+          customMarketplace[i] ||
+          Boolean((p.marketplace || "").trim() && !isPresetMarketplace(p.marketplace));
+        return (
+          <div className="product-editor-row" key={i}>
+            <label>
+              Title
+              <input value={p.title} onChange={(e) => updateProduct(i, { title: e.target.value })} />
+            </label>
+            <label>
+              URL
+              <input value={p.url} onChange={(e) => updateProduct(i, { url: e.target.value })} />
+            </label>
+            <label>
+              Marketplace
+              <select
+                value={useCustom ? "__custom__" : (p.marketplace || "").trim()}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (v === "__custom__") {
+                    setCustomMarketplace((prev) => ({ ...prev, [i]: true }));
+                    if (isPresetMarketplace(p.marketplace)) {
+                      updateProduct(i, { marketplace: "" });
+                    }
+                    return;
+                  }
+                  setCustomMarketplace((prev) => ({ ...prev, [i]: false }));
+                  updateProduct(i, { marketplace: v });
+                }}
+              >
+                <option value="">None</option>
+                {MARKETPLACE_PRESETS.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+                <option value="__custom__">Custom…</option>
+              </select>
+            </label>
+            {useCustom && (
+              <label>
+                Custom marketplace
+                <input
+                  value={p.marketplace || ""}
+                  placeholder="e.g. AppSumo"
+                  onChange={(e) => updateProduct(i, { marketplace: e.target.value })}
+                />
+              </label>
+            )}
+            <label>
+              Short description
+              <input
+                value={p.description || ""}
+                onChange={(e) => updateProduct(i, { description: e.target.value })}
+              />
+            </label>
+            <button type="button" className="btn-ghost" onClick={() => removeProduct(i)}>
+              Remove
+            </button>
+          </div>
+        );
+      })}
       <button type="button" className="btn-ghost" onClick={addProduct}>
         + Add product
       </button>

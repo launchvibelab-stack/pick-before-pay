@@ -98,12 +98,21 @@ export default async function AboutPage() {
           ) : (
             <div className="about-products-grid">
               {profile.products.map((p) => (
-                <a key={p.url + p.title} href={p.url} className="about-product-tile" target="_blank" rel="noopener noreferrer">
+                <a
+                  key={p.url + p.title}
+                  href={p.url}
+                  className="about-product-tile"
+                  target="_blank"
+                  rel="nofollow sponsored noopener"
+                >
+                  {p.marketplace && <span className="product-marketplace">{p.marketplace}</span>}
                   <span className="about-product-tile-name">{p.title}</span>
                   {p.description && (
                     <span className="about-product-tile-desc">{p.description}</span>
                   )}
-                  <span className="about-product-tile-arrow" aria-hidden>↗</span>
+                  <span className="about-product-tile-arrow" aria-hidden>
+                    ↗
+                  </span>
                 </a>
               ))}
             </div>
