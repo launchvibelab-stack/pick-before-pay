@@ -31,10 +31,11 @@ export const metadata: Metadata = {
   description: "In-depth niche reviews to help you choose the right tools and products before you buy.",
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/icon.png", type: "image/png" }
+      { url: "/icon-p.png", type: "image/png", sizes: "512x512" },
+      { url: "/favicon-p.ico", sizes: "any" }
     ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }]
+    apple: [{ url: "/apple-touch-icon-p.png", sizes: "180x180" }],
+    shortcut: "/icon-p.png"
   }
 };
 
