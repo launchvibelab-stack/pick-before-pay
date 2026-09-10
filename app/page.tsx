@@ -28,13 +28,13 @@ export const metadata: Metadata = {
     url: siteUrl(),
     type: "website",
     siteName: "PickBeforePay",
-    images: [{ url: "/logo.png" }]
+    images: [{ url: "/icon-p2.png", width: 512, height: 512, alt: "PickBeforePay" }]
   },
   twitter: {
     card: "summary",
     title: HOME_TITLE,
     description: HOME_DESC,
-    images: ["/logo.png"]
+    images: ["/icon-p2.png"]
   }
 };
 
@@ -49,8 +49,18 @@ export default async function Home() {
     error = "Supabase is not connected. Add environment variables and run schema.sql.";
   }
 
+  const orgLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "PickBeforePay",
+    url: siteUrl(),
+    logo: `${siteUrl()}/icon-p2.png`,
+    image: `${siteUrl()}/logo-wordmark.png`
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLd) }} />
       <TrackPageview path="/" />
       <Header />
       {banner && <PromoBanner banner={banner} />}

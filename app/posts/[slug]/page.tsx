@@ -137,7 +137,8 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
             author: {
               "@type": "Organization",
               name: "PickBeforePay",
-              url: siteUrl()
+              url: siteUrl(),
+              logo: `${siteUrl()}/icon-p2.png`
             },
             reviewBody: post.excerpt || post.meta_description || post.title,
             reviewRating: {
