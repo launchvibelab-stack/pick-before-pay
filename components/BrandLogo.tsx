@@ -21,7 +21,7 @@ export function BrandLogo({ height = LOGO_H }: { size?: number; height?: number 
   return (
     <a href="/" className="brand" aria-label="PickBeforePay home" onClick={goHome}>
       <Image
-        src="/logo-full.png"
+        src="/logo-wordmark.png"
         alt="PickBeforePay"
         width={w}
         height={h}
