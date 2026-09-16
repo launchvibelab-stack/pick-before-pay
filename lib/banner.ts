@@ -108,6 +108,8 @@ export async function saveBanner(input: Banner): Promise<{ banner: Banner; warni
   if (image.error) throw new Error(image.error);
   const cta = normalizeSafeHttpsUrl(input.cta_url, "CTA URL");
   if (cta.error) throw new Error(cta.error);
+  const review = normalizeSafeHttpsUrl(input.review_url, "Review URL", { allowRelative: true });
+  if (review.error) throw new Error(review.error);
 
   // Homepage banner fields only. Preserve legacy email-offer columns if still in DB.
   const banner: Banner = {
@@ -119,7 +121,7 @@ export async function saveBanner(input: Banner): Promise<{ banner: Banner; warni
     discount_code: existing.discount_code,
     cta_url: cta.url,
     cta_label: String(input.cta_label || "").trim().slice(0, 80),
-    review_url: existing.review_url,
+    review_url: review.url,
     label_variant: normalizeLabelVariant(input.label_variant),
     countdown_label: normalizeCountdownLabel(input.countdown_label)
   };

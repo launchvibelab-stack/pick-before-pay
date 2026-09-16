@@ -47,6 +47,8 @@ export function PromoBanner({ banner }: { banner: Banner }) {
   const showCountdown = Boolean(banner.expires_at && timeLeft);
   const hasImage = Boolean(banner.image_url);
   const ctaLabel = bannerCtaLabel(banner);
+  const reviewUrl = banner.review_url?.trim() || "";
+  const reviewIsExternal = /^https?:\/\//i.test(reviewUrl);
   const positionLabel =
     banner.label_variant === "featured_launch"
       ? "Featured Launch"
@@ -122,6 +124,17 @@ export function PromoBanner({ banner }: { banner: Banner }) {
           >
             {ctaLabel}
           </a>
+          {reviewUrl && (
+            <a
+              href={reviewUrl}
+              className="promo-review-link"
+              {...(reviewIsExternal
+                ? { target: "_blank", rel: "noopener noreferrer" }
+                : {})}
+            >
+              Read the review →
+            </a>
+          )}
         </div>
       </div>
 

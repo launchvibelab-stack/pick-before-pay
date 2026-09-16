@@ -182,6 +182,20 @@ export function BannerEditor({ initial }: Props) {
       </label>
 
       <label>
+        Review URL (optional)
+        <input
+          type="text"
+          value={form.review_url || ""}
+          onChange={(e) => update("review_url", e.target.value || null)}
+          placeholder="/posts/your-review-slug"
+        />
+        <small className="field-hint">
+          Link bài review trên site (vd. <code>/posts/...</code>) hoặc URL https. Hiện nút phụ “Read the review”
+          dưới CTA.
+        </small>
+      </label>
+
+      <label>
         Countdown label
         <select
           value={form.countdown_label}
