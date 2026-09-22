@@ -1,19 +1,35 @@
 import Script from "next/script";
 
-/** GA4 — only loads when NEXT_PUBLIC_GA_MEASUREMENT_ID is set. */
+/**
+ * Loads one shared gtag.js for GA4 and/or Google Ads.
+ * Avoids duplicating the full Google tag snippet on the page.
+ */
 export function GoogleAnalytics() {
-  const id = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim();
-  if (!id) return null;
+  const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim() || "";
+  const adsId =
+    process.env.NEXT_PUBLIC_GOOGLE_ADS_ID?.trim() || "AW-18467111836";
+  const primaryId = gaId || adsId;
+  if (!primaryId) return null;
+
+  const configLines = [
+    gaId ? `gtag('config', '${gaId}', { anonymize_ip: true });` : "",
+    adsId ? `gtag('config', '${adsId}');` : ""
+  ]
+    .filter(Boolean)
+    .join("\n          ");
 
   return (
     <>
-      <Script src={`https://www.googletagmanager.com/gtag/js?id=${id}`} strategy="afterInteractive" />
-      <Script id="ga4-init" strategy="afterInteractive">
+      <Script
+        src={`https://www.googletagmanager.com/gtag/js?id=${primaryId}`}
+        strategy="afterInteractive"
+      />
+      <Script id="gtag-init" strategy="afterInteractive">
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', '${id}', { anonymize_ip: true });
+          ${configLines}
         `}
       </Script>
     </>

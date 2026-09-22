@@ -27,6 +27,8 @@ Open `http://localhost:3000`; admin at `/admin`.
 
 ## Env vars
 - `NEXT_PUBLIC_SITE_URL` — `https://pickbeforepay.com` (canonical URL for sitemap + Sinbyte)
+- `NEXT_PUBLIC_GA_MEASUREMENT_ID` — GA4 measurement ID (`G-...`)
+- `NEXT_PUBLIC_GOOGLE_ADS_ID` — optional Google Ads tag (`AW-...`); code defaults to the live Ads ID if unset
 - `SUPABASE_URL` / `SUPABASE_SECRET_KEY`
 - `ADMIN_PASSWORD` / `AUTH_SECRET`
 - `SINBYTE_API_KEY` — from Sinbyte Quick Submit (indexes via `POST https://app.sinbyte.com/api/indexing/`)
