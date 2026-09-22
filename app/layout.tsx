@@ -42,8 +42,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${outfit.variable} ${newsreader.variable}`}>
-      <body>
+      <head>
         <GoogleAnalytics />
+      </head>
+      <body>
         <GoogleAnalyticsPageviews />
         {children}
       </body>
