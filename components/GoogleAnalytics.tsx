@@ -10,6 +10,10 @@ export function GoogleAnalytics() {
   const scriptId = adsId || gaId;
   if (!scriptId) return null;
 
+  const conversionSendTo =
+    process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_SEND_TO?.trim() ||
+    "AW-18467111836/Y7UECMWU-4EdEJyH5-VE";
+
   const configLines = [
     gaId ? `gtag('config', '${gaId}', { anonymize_ip: true });` : "",
     adsId ? `gtag('config', '${adsId}');` : ""
@@ -29,6 +33,18 @@ window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 ${configLines}
+function gtag_report_conversion(url) {
+  var callback = function () {
+    if (typeof(url) != 'undefined') {
+      window.location = url;
+    }
+  };
+  gtag('event', 'conversion', {
+    'send_to': '${conversionSendTo}',
+    'event_callback': callback
+  });
+  return false;
+}
 `
         }}
       />

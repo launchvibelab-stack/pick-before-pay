@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Outfit, Newsreader } from "next/font/google";
+import { AdsConversionClicks } from "@/components/AdsConversionClicks";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { GoogleAnalyticsPageviews } from "@/components/GoogleAnalyticsPageviews";
 import "./globals.css";
@@ -47,6 +48,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body>
         <GoogleAnalyticsPageviews />
+        <AdsConversionClicks />
         {children}
       </body>
     </html>
